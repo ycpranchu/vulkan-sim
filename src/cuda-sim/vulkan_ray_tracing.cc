@@ -115,7 +115,11 @@ void *VulkanRayTracing::launcher_deviceDescriptorSets
     [MAX_DESCRIPTOR_SETS][MAX_DESCRIPTOR_SET_BINDINGS] = {NULL};
 std::vector<void *> VulkanRayTracing::child_addrs_from_driver;
 std::map<void *, void *> VulkanRayTracing::blas_addr_map;
+
 void *VulkanRayTracing::tlas_addr;
+void *VulkanRayTracing::trigs_addr;
+void *VulkanRayTracing::bvhNode_addr;
+void *VulkanRayTracing::bvhPrimitiveIndice_addr;
 
 bool VulkanRayTracing::dumped = false;
 
@@ -1359,8 +1363,20 @@ void VulkanRayTracing::iterateDescriptorSet(struct DESCRIPTOR_SET_STRUCT *set) {
 
     printf("Descriptor %d: \n", i);
 
+    if (i == 12) {
+      allocTrigs(desc->info.ubo.pmem);
+    } else if (i == 13) {
+      allocBvhNode(desc->info.ubo.pmem);
+    } else if (i == 14) {
+      allocBvhPrimitiveIndice(desc->info.ubo.pmem);
+    }
+
     // Process according to different descriptor types
     switch (desc->type) {
+      case VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR:
+        printf("  Acceleration Structure at %p\n", desc->info.ubo.pmem);
+        break;
+
       case VK_DESCRIPTOR_TYPE_SAMPLER:
         printf("  Sampler at %p\n", desc->info.sampler);
         break;
@@ -1778,6 +1794,13 @@ void VulkanRayTracing::vkCmdTraceRaysKHR(
   }
 
   printf("gpgpusim: tlas address %p\n", tlas_addr);
+
+  printf("(ycpin) gpgpusim: trigs address %p\n", trigs_addr);
+
+  printf("(ycpin) gpgpusim: bvhNode address %p\n", bvhNode_addr);
+
+  printf("(ycpin) gpgpusim: bvhPrimitiveIndice address %p\n",
+         bvhPrimitiveIndice_addr);
 
   struct CUstream_st *stream = 0;
   stream_operation op(grid, ctx->func_sim->g_ptx_sim_mode, stream);
@@ -3105,12 +3128,24 @@ void VulkanRayTracing::allocTLAS(void *rootAddr, uint64_t bufferSize,
 }
 
 // Update for ray tracing baseline version
-void VulkanRayTracing::allocTrigs(void *rootAddr, uint64_t bufferSize,
-                                  void *gpgpusimAddr) {
-  // printf("gpgpusim: set BLAS address for 0x%lx at %p to %p\n", bufferSize,
-  //        rootAddr, gpgpusimAddr);
-  // blas_addr_map[rootAddr] = gpgpusimAddr;
+// ------------------------------------------------------------------
+
+void VulkanRayTracing::allocTrigs(void *gpgpusimAddr) {
+  printf("gpgpusim: set BLAS address to %p\n", gpgpusimAddr);
+  trigs_addr = gpgpusimAddr;
 }
+
+void VulkanRayTracing::allocBvhNode(void *gpgpusimAddr) {
+  printf("gpgpusim: set BvhNode address to %p\n", gpgpusimAddr);
+  bvhNode_addr = gpgpusimAddr;
+}
+
+void VulkanRayTracing::allocBvhPrimitiveIndice(void *gpgpusimAddr) {
+  printf("gpgpusim: set BvhPrimitiveIndice address to %p\n", gpgpusimAddr);
+  bvhPrimitiveIndice_addr = gpgpusimAddr;
+}
+
+// ------------------------------------------------------------------
 
 void VulkanRayTracing::findOffsetBounds(
     int64_t &max_backwards, int64_t &min_backwards, int64_t &min_forwards,

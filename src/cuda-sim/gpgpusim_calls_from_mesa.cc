@@ -81,10 +81,11 @@ extern void gpgpusim_addTreelets_cpp(
 }
 
 extern "C" void gpgpusim_setDescriptorSet(struct DESCRIPTOR_SET_STRUCT *set) {
-  printf("ycpin: setDescriptorSet\n");
-  VulkanRayTracing::setDescriptorSet(set);
   printf("ycpin: iterateDescriptorSet\n");
   VulkanRayTracing::iterateDescriptorSet(set);
+
+  printf("ycpin: setDescriptorSet\n");
+  VulkanRayTracing::setDescriptorSet(set);
 }
 
 // CPP externs

@@ -246,7 +246,12 @@ class VulkanRayTracing {
                                             [MAX_DESCRIPTOR_SET_BINDINGS];
   static std::vector<void *> child_addrs_from_driver;
   static std::map<void *, void *> VulkanRayTracing::blas_addr_map;
+
   static void *tlas_addr;
+  static void *trigs_addr;
+  static void *bvhNode_addr;
+  static void *bvhPrimitiveIndice_addr;
+
   static bool dumped;
   static bool _init_;
 
@@ -356,8 +361,11 @@ class VulkanRayTracing {
                         void *gpgpusimAddr);
   static void allocTLAS(void *rootAddr, uint64_t bufferSize,
                         void *gpgpusimAddr);
-  static void allocTrigs(void *rootAddr, uint64_t bufferSize,
-                         void *gpgpusimAddr);
+
+  static void allocTrigs(void *gpgpusimAddr);
+  static void allocBvhNode(void *gpgpusimAddr);
+  static void allocBvhPrimitiveIndice(void *gpgpusimAddr);
+
   static void *allocBuffer(void *bufferAddr, uint64_t bufferSize);
   static void findOffsetBounds(int64_t &max_backwards, int64_t &min_backwards,
                                int64_t &min_forwards, int64_t &max_forwards,
