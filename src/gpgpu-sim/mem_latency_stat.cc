@@ -241,7 +241,7 @@ void memory_stats_t::memlatstat_dram_access(mem_fetch *mf) {
   }
 
   if (mf->get_pc() != (unsigned)-1 &&
-    (mf->get_pc()<BRU_VIR_START || mf->get_pc()>GLOBAL_HEAP_START)) {
+      (mf->get_pc() < BRU_VIR_START || mf->get_pc() > GLOBAL_HEAP_START)) {
     m_gpu->gpgpu_ctx->stats->ptx_file_line_stats_add_dram_traffic(
         mf->get_pc(), mf->get_data_size());
   }

@@ -76,8 +76,8 @@ mem_fetch::mem_fetch(const mem_access_t &access, const warp_inst_t *inst,
   m_israytrace = false;
 }
 
-mem_fetch::~mem_fetch() { 
-  m_status = MEM_FETCH_DELETED; 
+mem_fetch::~mem_fetch() {
+  m_status = MEM_FETCH_DELETED;
   // allocated_mf_set.erase(m_request_uid);
 }
 

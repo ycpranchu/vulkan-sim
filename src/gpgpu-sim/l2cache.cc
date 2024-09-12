@@ -507,10 +507,9 @@ void memory_sub_partition::cache_cycle(unsigned cycle) {
       bool port_free = m_L2cache->data_port_free();
       if (!output_full && port_free) {
         std::list<cache_event> events;
-        enum cache_request_status status =
-            m_L2cache->access(mf->get_addr(), mf,
-                              m_gpu->gpu_sim_cycle + m_gpu->gpu_tot_sim_cycle,
-                              events);
+        enum cache_request_status status = m_L2cache->access(
+            mf->get_addr(), mf, m_gpu->gpu_sim_cycle + m_gpu->gpu_tot_sim_cycle,
+            events);
         bool write_sent = was_write_sent(events);
         bool read_sent = was_read_sent(events);
         MEM_SUBPART_DPRINTF("Probing L2 cache Address=%llx, status=%u\n",

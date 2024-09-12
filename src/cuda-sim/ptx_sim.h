@@ -478,16 +478,23 @@ class ptx_thread_info {
   //       exit(-1);
   //     }
   //     ptx_reg_t reg = get_reg(current_symbol);
-  //     fprintf("symbol %s: u32 = %d, u64 = %lld, f32 = %f, s32 = %d, s64 = %lld\n", symbolName, reg.u32, reg.u64, reg.f32, reg.s32, reg.s64);
+  //     fprintf("symbol %s: u32 = %d, u64 = %lld, f32 = %f, s32 = %d, s64 =
+  //     %lld\n", symbolName, reg.u32, reg.u64, reg.f32, reg.s32, reg.s64);
   //   }
   // }
 
   // Jin: get corresponding kernel grid for CDP purpose
   kernel_info_t &get_kernel() { return m_kernel; }
-  
-  void set_rt_transactions(std::vector<MemoryTransactionRecord> transactions) { RT_transactions = transactions; }
-  void set_rt_store_transactions(std::vector<MemoryStoreTransactionRecord> store_transactions) { RT_store_transactions = store_transactions; }
-  void set_txl_transactions(std::vector<ImageMemoryTransactionRecord> transaction);
+
+  void set_rt_transactions(std::vector<MemoryTransactionRecord> transactions) {
+    RT_transactions = transactions;
+  }
+  void set_rt_store_transactions(
+      std::vector<MemoryStoreTransactionRecord> store_transactions) {
+    RT_store_transactions = store_transactions;
+  }
+  void set_txl_transactions(
+      std::vector<ImageMemoryTransactionRecord> transaction);
   void set_txl_transactions(ImageMemoryTransactionRecord transactions);
   void add_ray_intersect() { m_num_ray_intersections += 1; }
   void add_ray_properties(Ray ray) { m_ray = ray; }
@@ -505,7 +512,7 @@ class ptx_thread_info {
   ptx_warp_info *m_warp_info;
   ptx_cta_info *m_cta_info;
   ptx_reg_t m_last_set_operand_value;
-  Vulkan_RT_thread_data* RT_thread_data;
+  Vulkan_RT_thread_data *RT_thread_data;
   std::vector<MemoryTransactionRecord> RT_transactions;
   std::vector<MemoryStoreTransactionRecord> RT_store_transactions;
 
@@ -551,7 +558,7 @@ class ptx_thread_info {
   bool m_enable_debug_trace;
 
   std::stack<class operand_info, std::vector<operand_info> > m_breakaddrs;
-  
+
   unsigned m_num_ray_intersections;
   Ray m_ray;
 };

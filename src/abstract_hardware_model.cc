@@ -52,9 +52,9 @@ warp_inst_t::per_thread_info::per_thread_info() {
   // GPGPU_Context()->allocate_perthread.insert(m_uid);
   for (unsigned i = 0; i < MAX_ACCESSES_PER_INSN_PER_THREAD; i++)
     memreqaddr[i] = 0;
-    
-    intersection_delay = 0;
-    end_cycle = 0;
+
+  intersection_delay = 0;
+  end_cycle = 0;
 }
 warp_inst_t::per_thread_info::~per_thread_info() {
   // GPGPU_Context()->allocate_perthread.erase(m_uid);
@@ -64,13 +64,13 @@ mem_access_t::mem_access_t() {
   // m_special_uid = ++(GPGPU_Context()->memaccess_uid);
   // GPGPU_Context()->allocate_memaccess.insert(m_uid);
 }
-mem_access_t::mem_access_t(gpgpu_context *ctx) { 
-  init(ctx); 
+mem_access_t::mem_access_t(gpgpu_context *ctx) {
+  init(ctx);
   // m_special_uid = ++(GPGPU_Context()->memaccess_uid);
   // GPGPU_Context()->allocate_memaccess.insert(m_uid);
 }
-mem_access_t::mem_access_t(mem_access_type type, new_addr_type address, unsigned size,
-              bool wr, gpgpu_context *ctx) {
+mem_access_t::mem_access_t(mem_access_type type, new_addr_type address,
+                           unsigned size, bool wr, gpgpu_context *ctx) {
   init(ctx);
   m_type = type;
   m_addr = address;
@@ -83,10 +83,12 @@ mem_access_t::mem_access_t(mem_access_type type, new_addr_type address, unsigned
   // m_special_uid = ++(GPGPU_Context()->memaccess_uid);
   // GPGPU_Context()->allocate_memaccess.insert(m_special_uid);
 }
-mem_access_t::mem_access_t(mem_access_type type, new_addr_type address, unsigned size,
-              bool wr, const active_mask_t &active_mask,
-              const mem_access_byte_mask_t &byte_mask,
-              const mem_access_sector_mask_t &sector_mask, gpgpu_context *ctx)
+mem_access_t::mem_access_t(mem_access_type type, new_addr_type address,
+                           unsigned size, bool wr,
+                           const active_mask_t &active_mask,
+                           const mem_access_byte_mask_t &byte_mask,
+                           const mem_access_sector_mask_t &sector_mask,
+                           gpgpu_context *ctx)
     : m_warp_mask(active_mask),
       m_byte_mask(byte_mask),
       m_sector_mask(sector_mask) {
@@ -515,10 +517,13 @@ void warp_inst_t::generate_mem_accesses() {
     std::map<new_addr_type, active_mask_t>::iterator a;
     for (unsigned thread = 0; thread < m_config->warp_size; thread++) {
       if (!active(thread)) continue;
-      for (unsigned thread_access=0; thread_access<MAX_ACCESSES_PER_INSN_PER_THREAD; thread_access++) {
-        new_addr_type addr = m_per_scalar_thread[thread].memreqaddr[thread_access];
+      for (unsigned thread_access = 0;
+           thread_access < MAX_ACCESSES_PER_INSN_PER_THREAD; thread_access++) {
+        new_addr_type addr =
+            m_per_scalar_thread[thread].memreqaddr[thread_access];
         if (addr == 0) break;
-        unsigned block_address = line_size_based_tag_func(addr, cache_block_size);
+        unsigned block_address =
+            line_size_based_tag_func(addr, cache_block_size);
         accesses[block_address].set(thread);
         unsigned idx = addr - block_address;
         for (unsigned i = 0; i < data_size; i++) byte_mask.set(idx + i);
@@ -816,18 +821,18 @@ void warp_inst_t::completed(unsigned long long cycle) const {
   assert(latency <= cycle);  // underflow detection
   m_config->gpgpu_ctx->stats->ptx_file_line_stats_add_latency(
       pc, latency * active_count());
-  
+
   unsigned inst_type = (mem_op == TEX) ? 27 : (unsigned)op;
   m_config->gpgpu_ctx->func_sim->g_inst_type_latency[inst_type] += latency;
 }
 
-
 /* Start of RT unit functions */
 
 void warp_inst_t::print_rt_accesses() {
-  for (unsigned i=0; i<m_config->warp_size; i++) {
+  for (unsigned i = 0; i < m_config->warp_size; i++) {
     RT_DPRINTF("Thread %d: ", i);
-    for (auto it=m_per_scalar_thread[i].RT_mem_accesses.begin(); it!=m_per_scalar_thread[i].RT_mem_accesses.end(); it++) {
+    for (auto it = m_per_scalar_thread[i].RT_mem_accesses.begin();
+         it != m_per_scalar_thread[i].RT_mem_accesses.end(); it++) {
       RT_DPRINTF("0x%x\t", it->address);
     }
     RT_DPRINTF("\n");
@@ -836,7 +841,7 @@ void warp_inst_t::print_rt_accesses() {
 
 void warp_inst_t::print_intersection_delay() {
   RT_DPRINTF("Intersection Delays: [");
-  for (unsigned i=0; i<m_config->warp_size; i++) {
+  for (unsigned i = 0; i < m_config->warp_size; i++) {
     RT_DPRINTF("%d\t", m_per_scalar_thread[i].intersection_delay);
   }
   RT_DPRINTF("\n");
@@ -846,67 +851,81 @@ bool warp_inst_t::check_pending_writes(new_addr_type addr) {
   if (m_pending_writes.find(addr) != m_pending_writes.end()) {
     m_pending_writes.erase(addr);
     return true;
-  }
-  else {
+  } else {
     return false;
   }
 }
 
-unsigned warp_inst_t::dec_thread_latency(std::deque<std::pair<unsigned, new_addr_type> > &store_queue) { 
+unsigned warp_inst_t::dec_thread_latency(
+    std::deque<std::pair<unsigned, new_addr_type> > &store_queue) {
   // Track number of threads performing intersection tests
   unsigned n_threads = 0;
-  
-  for (unsigned i=0; i<m_config->warp_size; i++) {
+
+  for (unsigned i = 0; i < m_config->warp_size; i++) {
     if (m_per_scalar_thread[i].intersection_delay > 0) {
-      m_per_scalar_thread[i].intersection_delay--; 
+      m_per_scalar_thread[i].intersection_delay--;
       n_threads++;
-      if (m_per_scalar_thread[i].intersection_delay == 0 && m_per_scalar_thread[i].ray_intersect) {
+      if (m_per_scalar_thread[i].intersection_delay == 0 &&
+          m_per_scalar_thread[i].ray_intersect) {
         // Temporary size
         unsigned size = RT_WRITE_BACK_SIZE;
 
         // Get an address to write to
-        void* next_buffer_addr = GPGPUSim_Context(GPGPU_Context())->get_device()->get_gpgpu()->gpu_malloc(size);
-        store_queue.push_back(std::pair<unsigned, new_addr_type>(m_uid, (new_addr_type)next_buffer_addr));
+        void *next_buffer_addr = GPGPUSim_Context(GPGPU_Context())
+                                     ->get_device()
+                                     ->get_gpgpu()
+                                     ->gpu_malloc(size);
+        store_queue.push_back(std::pair<unsigned, new_addr_type>(
+            m_uid, (new_addr_type)next_buffer_addr));
         m_per_scalar_thread[i].ray_intersect = false;
-        RT_DPRINTF("Buffer store pushed for warp %d thread %d at 0x%x\n", m_uid, i, next_buffer_addr);
+        RT_DPRINTF("Buffer store pushed for warp %d thread %d at 0x%x\n", m_uid,
+                   i, next_buffer_addr);
 
         m_pending_writes.insert((new_addr_type)next_buffer_addr);
       }
-      
-      for(auto & store_transaction : m_per_scalar_thread[i].RT_store_transactions) {
-        store_queue.push_back(std::pair<unsigned, new_addr_type>(m_uid, (new_addr_type)(store_transaction.address)));
-        RT_DPRINTF("Buffer store pushed for warp %d thread %d at 0x%x\n", m_uid, i, store_transaction.address);
 
-        assert(m_pending_writes.find((new_addr_type)store_transaction.address) == m_pending_writes.end());
+      for (auto &store_transaction :
+           m_per_scalar_thread[i].RT_store_transactions) {
+        store_queue.push_back(std::pair<unsigned, new_addr_type>(
+            m_uid, (new_addr_type)(store_transaction.address)));
+        RT_DPRINTF("Buffer store pushed for warp %d thread %d at 0x%x\n", m_uid,
+                   i, store_transaction.address);
+
+        assert(
+            m_pending_writes.find((new_addr_type)store_transaction.address) ==
+            m_pending_writes.end());
         m_pending_writes.insert((new_addr_type)store_transaction.address);
       }
       m_per_scalar_thread[i].RT_store_transactions.clear();
     }
   }
-  
+
   return n_threads;
 }
 
 void warp_inst_t::track_rt_cycles(bool active) {
   bool stalled = is_stalled();
-  unsigned warp_status = active ? warp_executing : stalled ? warp_stalled : warp_waiting;
+  unsigned warp_status =
+      active ? warp_executing : stalled ? warp_stalled : warp_waiting;
 
   // Check progress of each thread
-  for (unsigned i=0; i<m_config->warp_size; i++) {
+  for (unsigned i = 0; i < m_config->warp_size; i++) {
     // Only check active threads
     if (thread_active(i)) {
       // Easiest check is intersection tests
       if (m_per_scalar_thread[i].intersection_delay != 0) {
         m_per_scalar_thread[i].status_num_cycles[warp_status][executing_op]++;
       }
-      // Check that the thread is not done and not performing intersection tests. 
+      // Check that the thread is not done and not performing intersection
+      // tests.
       else if (!m_per_scalar_thread[i].RT_mem_accesses.empty()) {
         // This is the next address that the thread wants
-        RTMemoryTransactionRecord mem_record = m_per_scalar_thread[i].RT_mem_accesses.front();
+        RTMemoryTransactionRecord mem_record =
+            m_per_scalar_thread[i].RT_mem_accesses.front();
         if (mem_record.status == RT_MEM_UNMARKED) {
-          m_per_scalar_thread[i].status_num_cycles[warp_status][awaiting_scheduling]++;
-        }
-        else {
+          m_per_scalar_thread[i]
+              .status_num_cycles[warp_status][awaiting_scheduling]++;
+        } else {
           m_per_scalar_thread[i].status_num_cycles[warp_status][awaiting_mf]++;
         }
       }
@@ -918,29 +937,28 @@ void warp_inst_t::track_rt_cycles(bool active) {
   }
 }
 
-unsigned * warp_inst_t::get_latency_dist(unsigned i) {
+unsigned *warp_inst_t::get_latency_dist(unsigned i) {
   return (unsigned *)m_per_scalar_thread[i].status_num_cycles;
 }
 
-void warp_inst_t::set_rt_mem_transactions(unsigned int tid, std::vector<MemoryTransactionRecord> transactions) {
+void warp_inst_t::set_rt_mem_transactions(
+    unsigned int tid, std::vector<MemoryTransactionRecord> transactions) {
   // Initialize
   if (!m_per_scalar_thread_valid) {
     m_per_scalar_thread.resize(m_config->warp_size);
     m_per_scalar_thread_valid = true;
   }
-  
-  for (auto it=transactions.begin(); it!=transactions.end(); it++) {
+
+  for (auto it = transactions.begin(); it != transactions.end(); it++) {
     // Convert transaction type and add to thread
-    RTMemoryTransactionRecord mem_record(
-      (new_addr_type)it->address,
-      it->size,
-      it->type
-    );
+    RTMemoryTransactionRecord mem_record((new_addr_type)it->address, it->size,
+                                         it->type);
     m_per_scalar_thread[tid].RT_mem_accesses.push_back(mem_record);
   }
 }
 
-void warp_inst_t::set_rt_mem_store_transactions(unsigned int tid, std::vector<MemoryStoreTransactionRecord>& transactions) {
+void warp_inst_t::set_rt_mem_store_transactions(
+    unsigned int tid, std::vector<MemoryStoreTransactionRecord> &transactions) {
   m_per_scalar_thread[tid].RT_store_transactions = transactions;
 }
 
@@ -950,15 +968,18 @@ bool warp_inst_t::is_stalled() {
     return false;
   }
   // Otherwise check every thread
-  for (unsigned i=0; i<m_config->warp_size; i++) {
+  for (unsigned i = 0; i < m_config->warp_size; i++) {
     if (!m_per_scalar_thread[i].RT_mem_accesses.empty()) {
-      RTMemoryTransactionRecord mem_record = m_per_scalar_thread[i].RT_mem_accesses.front();
-      
+      RTMemoryTransactionRecord mem_record =
+          m_per_scalar_thread[i].RT_mem_accesses.front();
+
       // If there is an unprocessed record, not stalled
-      if (mem_record.status == RT_MEM_UNMARKED && m_per_scalar_thread[i].intersection_delay == 0) return false;
+      if (mem_record.status == RT_MEM_UNMARKED &&
+          m_per_scalar_thread[i].intersection_delay == 0)
+        return false;
     }
   }
-  
+
   // Otherwise stalled
   return true;
 }
@@ -968,7 +989,7 @@ void warp_inst_t::set_rt_ray_properties(unsigned int tid, Ray ray) {
   m_per_scalar_thread[tid].ray_properties = ray;
 }
 
-bool warp_inst_t::rt_mem_accesses_empty() { 
+bool warp_inst_t::rt_mem_accesses_empty() {
   bool empty = true;
   for (unsigned i = 0; i < m_config->warp_size; i++) {
     empty &= m_per_scalar_thread[i].RT_mem_accesses.empty();
@@ -977,16 +998,18 @@ bool warp_inst_t::rt_mem_accesses_empty() {
   return empty;
 }
 
-void warp_inst_t::num_unique_mem_access(std::map<new_addr_type, unsigned> &addr_set) {
+void warp_inst_t::num_unique_mem_access(
+    std::map<new_addr_type, unsigned> &addr_set) {
   for (unsigned i = 0; i < m_config->warp_size; i++) {
     if (!m_per_scalar_thread[i].RT_mem_accesses.empty()) {
-      RTMemoryTransactionRecord record = m_per_scalar_thread[i].RT_mem_accesses.front();
+      RTMemoryTransactionRecord record =
+          m_per_scalar_thread[i].RT_mem_accesses.front();
       addr_set[record.address]++;
     }
   }
 }
 
-bool warp_inst_t::rt_intersection_delay_done() { 
+bool warp_inst_t::rt_intersection_delay_done() {
   bool done = true;
   for (unsigned i = 0; i < m_config->warp_size; i++) {
     done &= (m_per_scalar_thread[i].intersection_delay == 0);
@@ -997,7 +1020,8 @@ bool warp_inst_t::rt_intersection_delay_done() {
 unsigned warp_inst_t::get_rt_active_threads() {
   assert(m_per_scalar_thread_valid);
   unsigned active_threads = 0;
-  for (auto it=m_per_scalar_thread.begin(); it!=m_per_scalar_thread.end(); it++) {
+  for (auto it = m_per_scalar_thread.begin(); it != m_per_scalar_thread.end();
+       it++) {
     if (!it->RT_mem_accesses.empty()) {
       active_threads++;
     }
@@ -1008,7 +1032,7 @@ unsigned warp_inst_t::get_rt_active_threads() {
 std::deque<unsigned> warp_inst_t::get_rt_active_thread_list() {
   assert(m_per_scalar_thread_valid);
   std::deque<unsigned> active_threads;
-  for (unsigned i=0; i<m_config->warp_size; i++) {
+  for (unsigned i = 0; i < m_config->warp_size; i++) {
     if (!m_per_scalar_thread[i].RT_mem_accesses.empty()) {
       active_threads.push_back(i);
     }
@@ -1017,32 +1041,36 @@ std::deque<unsigned> warp_inst_t::get_rt_active_thread_list() {
 }
 
 void warp_inst_t::set_thread_end_cycle(unsigned long long cycle) {
-    for (unsigned i=0; i<m_config->warp_size; i++) {
-        m_per_scalar_thread[i].end_cycle = cycle;
-    }
+  for (unsigned i = 0; i < m_config->warp_size; i++) {
+    m_per_scalar_thread[i].end_cycle = cycle;
+  }
 }
 
 void warp_inst_t::update_next_rt_accesses() {
-  
   // Iterate through every thread
-  for (unsigned i=0; i<m_config->warp_size; i++) {
+  for (unsigned i = 0; i < m_config->warp_size; i++) {
     if (!m_per_scalar_thread[i].RT_mem_accesses.empty()) {
-      RTMemoryTransactionRecord next_access = m_per_scalar_thread[i].RT_mem_accesses.front();
-      
-      // If "unmarked", this has not been added to queue yet (also make sure intersection is complete)
-      if (next_access.status == RTMemStatus::RT_MEM_UNMARKED && m_per_scalar_thread[i].intersection_delay == 0) {
-        std::pair<new_addr_type, unsigned> address_size_pair (next_access.address, next_access.size);
+      RTMemoryTransactionRecord next_access =
+          m_per_scalar_thread[i].RT_mem_accesses.front();
+
+      // If "unmarked", this has not been added to queue yet (also make sure
+      // intersection is complete)
+      if (next_access.status == RTMemStatus::RT_MEM_UNMARKED &&
+          m_per_scalar_thread[i].intersection_delay == 0) {
+        std::pair<new_addr_type, unsigned> address_size_pair(
+            next_access.address, next_access.size);
         // Add to queue if the same address doesn't already exist
-        if (m_next_rt_accesses_set.find(address_size_pair) == m_next_rt_accesses_set.end()) {
+        if (m_next_rt_accesses_set.find(address_size_pair) ==
+            m_next_rt_accesses_set.end()) {
           m_next_rt_accesses.push_back(next_access);
           m_next_rt_accesses_set.insert(address_size_pair);
         }
         // Update status
-        m_per_scalar_thread[i].RT_mem_accesses.front().status = RTMemStatus::RT_MEM_AWAITING;
+        m_per_scalar_thread[i].RT_mem_accesses.front().status =
+            RTMemStatus::RT_MEM_AWAITING;
       }
     }
   }
-  
 }
 
 RTMemoryTransactionRecord warp_inst_t::get_next_rt_mem_transaction() {
@@ -1050,32 +1078,34 @@ RTMemoryTransactionRecord warp_inst_t::get_next_rt_mem_transaction() {
   update_next_rt_accesses();
   RTMemoryTransactionRecord next_access;
   std::pair<new_addr_type, unsigned> address_size_pair;
-  
+
   do {
     // Choose the next one on the list
     next_access = m_next_rt_accesses.front();
     m_next_rt_accesses.pop_front();
-    
-    address_size_pair = std::pair<new_addr_type, unsigned>(next_access.address, next_access.size);
-    
-  // Check that the address hasn't already been sent
-  } while (m_next_rt_accesses_set.find(address_size_pair) == m_next_rt_accesses_set.end());
-  
+
+    address_size_pair = std::pair<new_addr_type, unsigned>(next_access.address,
+                                                           next_access.size);
+
+    // Check that the address hasn't already been sent
+  } while (m_next_rt_accesses_set.find(address_size_pair) ==
+           m_next_rt_accesses_set.end());
+
   m_next_rt_accesses_set.erase(address_size_pair);
-  
-  RT_DPRINTF("Next access chosen: 0x%x with %dB\n", next_access.address, next_access.size);
+
+  RT_DPRINTF("Next access chosen: 0x%x with %dB\n", next_access.address,
+             next_access.size);
   return next_access;
 }
 
-void warp_inst_t::undo_rt_access(new_addr_type addr){ 
-  std::pair<new_addr_type, unsigned> address_size_pair (addr, 32);
-  assert (m_next_rt_accesses_set.find(address_size_pair) == m_next_rt_accesses_set.end());
-  
+void warp_inst_t::undo_rt_access(new_addr_type addr) {
+  std::pair<new_addr_type, unsigned> address_size_pair(addr, 32);
+  assert(m_next_rt_accesses_set.find(address_size_pair) ==
+         m_next_rt_accesses_set.end());
+
   // Repackage address into a transaction record
-  RTMemoryTransactionRecord mem_record(
-    addr, 32, TransactionType::UNDEFINED
-  );
-  
+  RTMemoryTransactionRecord mem_record(addr, 32, TransactionType::UNDEFINED);
+
   // Already in queue
   mem_record.status = RT_MEM_AWAITING;
 
@@ -1085,78 +1115,96 @@ void warp_inst_t::undo_rt_access(new_addr_type addr){
 }
 
 unsigned warp_inst_t::process_returned_mem_access(const mem_fetch *mf) {
-  RT_DPRINTF("Processing returned data 0x%x (base 0x%x) for Warp %d\n", mf->get_uncoalesced_addr(), mf->get_uncoalesced_base_addr(), m_warp_id);
+  RT_DPRINTF("Processing returned data 0x%x (base 0x%x) for Warp %d\n",
+             mf->get_uncoalesced_addr(), mf->get_uncoalesced_base_addr(),
+             m_warp_id);
   RT_DPRINTF("Current state:\n");
   print_rt_accesses();
   print_intersection_delay();
   RT_DPRINTF("\n");
-  
+
   // Count how many threads used this mf
   unsigned thread_found = 0;
-  
+
   // Get addresses
   new_addr_type addr = mf->get_addr();
   new_addr_type uncoalesced_base_addr = mf->get_uncoalesced_base_addr();
-  
+
   // Iterate through every thread in the warp
-  for (unsigned i=0; i<m_config->warp_size; i++) {
+  for (unsigned i = 0; i < m_config->warp_size; i++) {
     bool mem_record_done;
-    if (process_returned_mem_access(mem_record_done, i, addr, uncoalesced_base_addr)) {
+    if (process_returned_mem_access(mem_record_done, i, addr,
+                                    uncoalesced_base_addr)) {
       thread_found++;
     }
   }
   return thread_found;
 }
 
-bool warp_inst_t::process_returned_mem_access(const mem_fetch *mf, unsigned tid) {
+bool warp_inst_t::process_returned_mem_access(const mem_fetch *mf,
+                                              unsigned tid) {
   bool mem_record_done = false;
-  
+
   // Get addresses
   new_addr_type addr = mf->get_addr();
   new_addr_type uncoalesced_base_addr = mf->get_uncoalesced_base_addr();
 
-  assert(process_returned_mem_access(mem_record_done, tid, addr, uncoalesced_base_addr));
+  assert(process_returned_mem_access(mem_record_done, tid, addr,
+                                     uncoalesced_base_addr));
   return mem_record_done;
 }
 
-bool warp_inst_t::process_returned_mem_access(bool &mem_record_done, unsigned tid, new_addr_type addr, new_addr_type uncoalesced_base_addr) {
+bool warp_inst_t::process_returned_mem_access(
+    bool &mem_record_done, unsigned tid, new_addr_type addr,
+    new_addr_type uncoalesced_base_addr) {
   bool thread_found = false;
   if (!m_per_scalar_thread[tid].RT_mem_accesses.empty()) {
-    RTMemoryTransactionRecord &mem_record = m_per_scalar_thread[tid].RT_mem_accesses.front();
+    RTMemoryTransactionRecord &mem_record =
+        m_per_scalar_thread[tid].RT_mem_accesses.front();
     new_addr_type thread_addr = mem_record.address;
-    
+
     if (thread_addr == uncoalesced_base_addr) {
-      new_addr_type coalesced_base_addr = line_size_based_tag_func(uncoalesced_base_addr, 32);
+      new_addr_type coalesced_base_addr =
+          line_size_based_tag_func(uncoalesced_base_addr, 32);
       unsigned position = (addr - coalesced_base_addr) / 32;
       std::string bitstring = mem_record.mem_chunks.to_string();
-      RT_DPRINTF("Thread %d received chunk %d (of <%s>)\n", tid, position, bitstring.c_str());
+      RT_DPRINTF("Thread %d received chunk %d (of <%s>)\n", tid, position,
+                 bitstring.c_str());
       mem_record.mem_chunks.reset(position);
-      
+
       // If all the bits are clear, the entire data has returned, pop from list
       if (mem_record.mem_chunks.none()) {
         // Set up delay of next intersection test
-        unsigned n_delay_cycles = m_config->m_rt_intersection_latency.at(mem_record.type);
+        unsigned n_delay_cycles =
+            m_config->m_rt_intersection_latency.at(mem_record.type);
         m_per_scalar_thread[tid].intersection_delay += n_delay_cycles;
-        
-        RT_DPRINTF("Thread %d collected all chunks for address 0x%x (size %d)\n", tid, mem_record.address, mem_record.size);
-        RT_DPRINTF("Processing data of transaction type %d for %d cycles.\n", mem_record.type, n_delay_cycles);
+
+        RT_DPRINTF(
+            "Thread %d collected all chunks for address 0x%x (size %d)\n", tid,
+            mem_record.address, mem_record.size);
+        RT_DPRINTF("Processing data of transaction type %d for %d cycles.\n",
+                   mem_record.type, n_delay_cycles);
         m_per_scalar_thread[tid].RT_mem_accesses.pop_front();
         mem_record_done = true;
 
         // Mark triangle hit to store to memory
         if (mem_record.type == TransactionType::BVH_QUAD_LEAF_HIT) {
           m_per_scalar_thread[tid].ray_intersect = true;
-          RT_DPRINTF("Buffer store detected for warp %d thread %d\n", m_uid, tid);
+          RT_DPRINTF("Buffer store detected for warp %d thread %d\n", m_uid,
+                     tid);
         }
       }
       thread_found = true;
     }
-    
-    // If the RT_mem_accesses is now empty, then the last memory request has returned and the thread is almost done
+
+    // If the RT_mem_accesses is now empty, then the last memory request has
+    // returned and the thread is almost done
     if (m_per_scalar_thread[tid].RT_mem_accesses.empty()) {
-      unsigned long long current_cycle =  GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle +
-                                          GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_sim_cycle;
-      m_per_scalar_thread[tid].end_cycle = current_cycle + m_per_scalar_thread[tid].intersection_delay;
+      unsigned long long current_cycle =
+          GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle +
+          GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_sim_cycle;
+      m_per_scalar_thread[tid].end_cycle =
+          current_cycle + m_per_scalar_thread[tid].intersection_delay;
     }
   }
   return thread_found;
@@ -1185,7 +1233,8 @@ kernel_info_t::kernel_info_t(dim3 gridDim, dim3 blockDim,
       entry->gpgpu_ctx->device_runtime->g_kernel_launch_latency +
       num_blocks() * entry->gpgpu_ctx->device_runtime->g_TB_launch_latency;
 
-  m_max_simulated_kernels = entry->gpgpu_ctx->device_runtime->g_max_sim_rt_kernels;
+  m_max_simulated_kernels =
+      entry->gpgpu_ctx->device_runtime->g_max_sim_rt_kernels;
 
   cache_config_set = false;
 }
@@ -1222,7 +1271,8 @@ kernel_info_t::kernel_info_t(
   m_NameToCudaArray = nameToCudaArray;
   m_NameToTextureInfo = nameToTextureInfo;
 
-  m_max_simulated_kernels = entry->gpgpu_ctx->device_runtime->g_max_sim_rt_kernels;
+  m_max_simulated_kernels =
+      entry->gpgpu_ctx->device_runtime->g_max_sim_rt_kernels;
 }
 
 kernel_info_t::~kernel_info_t() {
@@ -1334,8 +1384,10 @@ void kernel_info_t::destroy_cta_streams() {
   printf("size %lu\n", stream_size);
   m_cta_streams.clear();
 
-  if ((get_uid() >= (m_max_simulated_kernels)) && (m_max_simulated_kernels != 0)) {
-    printf("Max simulated kernels of %d has reached, exiting.\n", m_max_simulated_kernels);
+  if ((get_uid() >= (m_max_simulated_kernels)) &&
+      (m_max_simulated_kernels != 0)) {
+    printf("Max simulated kernels of %d has reached, exiting.\n",
+           m_max_simulated_kernels);
     exit(0);
   }
 }
@@ -1343,7 +1395,10 @@ void kernel_info_t::destroy_cta_streams() {
 #define MAX_VIRTUAL_ST_ENTRIES 32
 #define MAX_VIRTUAL_RT_ENTRIES 32
 
-simt_splits_table::simt_splits_table(unsigned wid, unsigned warpSize, const shader_core_config* config, const struct memory_config* mem_config, simt_tables* simt_table) {
+simt_splits_table::simt_splits_table(unsigned wid, unsigned warpSize,
+                                     const shader_core_config *config,
+                                     const struct memory_config *mem_config,
+                                     simt_tables *simt_table) {
   m_warp_id = wid;
   m_warp_size = warpSize;
   m_active_split = (unsigned)-1;
@@ -1366,24 +1421,25 @@ simt_splits_table::simt_splits_table(unsigned wid, unsigned warpSize, const shad
 
 void simt_splits_table::reset() {
   m_splits_table.clear();
-  for (unsigned i=0; i<MAX_VIRTUAL_ST_ENTRIES; i++) {
-    m_splits_table[i]=simt_splits_table_entry();
+  for (unsigned i = 0; i < MAX_VIRTUAL_ST_ENTRIES; i++) {
+    m_splits_table[i] = simt_splits_table_entry();
   }
   while (!m_fifo_queue.empty()) m_fifo_queue.pop_front();
   while (!m_invalid_entries.empty()) m_invalid_entries.pop();
-  for (int i=0; i<MAX_VIRTUAL_ST_ENTRIES; i++) {
-    m_splits_table[i]=simt_splits_table_entry();
+  for (int i = 0; i < MAX_VIRTUAL_ST_ENTRIES; i++) {
+    m_splits_table[i] = simt_splits_table_entry();
   }
- 	for (int i=MAX_VIRTUAL_ST_ENTRIES-1; i>=0; i--) {
- 		m_invalid_entries.push(i);
- 	}
+  for (int i = MAX_VIRTUAL_ST_ENTRIES - 1; i >= 0; i--) {
+    m_invalid_entries.push(i);
+  }
 
- 	for (int i=m_warp_size; i>=0; i--) {
- 		m_available_v_id.push(i);
- 	}
- }
+  for (int i = m_warp_size; i >= 0; i--) {
+    m_available_v_id.push(i);
+  }
+}
 
-void simt_splits_table::launch( address_type start_pc, const simt_mask_t &active_mask ) {
+void simt_splits_table::launch(address_type start_pc,
+                               const simt_mask_t &active_mask) {
   reset();
   assert(!m_splits_table[0].m_valid);
   m_splits_table[0].m_pc = start_pc;
@@ -1398,29 +1454,35 @@ void simt_splits_table::launch( address_type start_pc, const simt_mask_t &active
   m_num_entries = 1;
   m_num_physical_entries = 1;
   assert((m_num_entries + m_invalid_entries.size()) == MAX_VIRTUAL_ST_ENTRIES);
-  unsigned long long gpgpusim_total_cycles = GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_sim_cycle + GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle;
-  m_fifo_queue.push_back(fifo_entry(0, gpgpusim_total_cycles, m_fifo_queue.size()));
+  unsigned long long gpgpusim_total_cycles =
+      GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_sim_cycle +
+      GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle;
+  m_fifo_queue.push_back(
+      fifo_entry(0, gpgpusim_total_cycles, m_fifo_queue.size()));
 }
 
-const simt_mask_t & simt_splits_table::get_active_mask() {
+const simt_mask_t &simt_splits_table::get_active_mask() {
   assert(m_splits_table.find(m_active_split) != m_splits_table.end());
   assert(m_splits_table[m_active_split].m_valid);
   assert(m_splits_table[m_active_split].m_active_mask.any());
   return m_splits_table[m_active_split].m_active_mask;
 }
 
-const simt_mask_t & simt_splits_table::get_active_mask(unsigned num) {
+const simt_mask_t &simt_splits_table::get_active_mask(unsigned num) {
   assert(m_splits_table.find(num) != m_splits_table.end());
   return m_splits_table[num].m_active_mask;
 }
 
-void simt_splits_table::get_pdom_splits_entry_info(unsigned num, unsigned *pc, unsigned *rpc) {
-  assert((m_splits_table.find(num)!=m_splits_table.end()) && m_splits_table[0].m_valid);
+void simt_splits_table::get_pdom_splits_entry_info(unsigned num, unsigned *pc,
+                                                   unsigned *rpc) {
+  assert((m_splits_table.find(num) != m_splits_table.end()) &&
+         m_splits_table[0].m_valid);
   *pc = m_splits_table[num].m_pc;
   *rpc = m_splits_table[num].m_recvg_pc;
 }
 
-void simt_splits_table::get_pdom_active_split_info(unsigned *pc, unsigned *rpc) {
+void simt_splits_table::get_pdom_active_split_info(unsigned *pc,
+                                                   unsigned *rpc) {
   assert((m_splits_table.find(m_active_split) != m_splits_table.end()));
   assert(m_splits_table[m_active_split].m_valid);
   *pc = m_splits_table[m_active_split].m_pc;
@@ -1432,119 +1494,120 @@ unsigned simt_splits_table::get_rpc(unsigned num) {
   return m_splits_table[num].m_recvg_pc;
 }
 
-void simt_splits_table::set_shader(shader_core_ctx* shader) {
+void simt_splits_table::set_shader(shader_core_ctx *shader) {
   m_shader = shader;
 }
 
 bool simt_splits_table::is_virtualized() {
- 	return m_splits_table[m_active_split].m_virtual;
+  return m_splits_table[m_active_split].m_virtual;
 }
 
 unsigned simt_splits_table::address_to_entry(warp_inst_t inst) {
- 	if (!inst.empty()) { 
- 		unsigned wid = inst.warp_id();
- 		address_type addr = inst.pc;
- 		unsigned entry = (addr - BRU_VIR_START - (wid*m_config->warp_size)*MAX_BRU_VIR_PER_SPLIT)/(MAX_BRU_VIR_PER_SPLIT);
- 		return entry;
- 	}
- 	return (unsigned)-1;
+  if (!inst.empty()) {
+    unsigned wid = inst.warp_id();
+    address_type addr = inst.pc;
+    unsigned entry = (addr - BRU_VIR_START -
+                      (wid * m_config->warp_size) * MAX_BRU_VIR_PER_SPLIT) /
+                     (MAX_BRU_VIR_PER_SPLIT);
+    return entry;
+  }
+  return (unsigned)-1;
 }
 
 bool simt_splits_table::blocked() {
- 	return m_splits_table[m_active_split].m_blocked;
+  return m_splits_table[m_active_split].m_blocked;
 }
-
 
 bool simt_splits_table::push_to_st_response_fifo(unsigned entry) {
- 	if (m_response_st_entry == -1) {
- 		m_response_st_entry=entry;
- 		return true;
- 	}
- 	return false;
+  if (m_response_st_entry == -1) {
+    m_response_st_entry = entry;
+    return true;
+  }
+  return false;
 }
 
-
 unsigned simt_splits_table::get_replacement_candidate() {
- 	unsigned entry = (unsigned)-1;
- 	for (unsigned i=m_fifo_queue.size()-1; i>=0; i--) {
- 		fifo_entry replacement_candidate = m_fifo_queue[i];
- 		entry = replacement_candidate.m_st_entry;
- 		if (!m_splits_table[entry].m_virtual)
- 			break;
- 	}
- 	assert(entry != (unsigned)-1);
- 	return entry;
+  unsigned entry = (unsigned)-1;
+  for (unsigned i = m_fifo_queue.size() - 1; i >= 0; i--) {
+    fifo_entry replacement_candidate = m_fifo_queue[i];
+    entry = replacement_candidate.m_st_entry;
+    if (!m_splits_table[entry].m_virtual) break;
+  }
+  assert(entry != (unsigned)-1);
+  return entry;
 }
 
 bool simt_splits_table::spill_st_entry() {
- 	if(!m_spill_st_entry.empty()) return false;
+  if (!m_spill_st_entry.empty()) return false;
 
- 	assert(m_spill_st_entry.empty());
- 	/*
- 	 * - Choose replacement candidate
- 	 * - mark the entry as virtual
- 	 * - Create a warp_inst_t that contains the following information:
- 	 *    - store instruction
- 	 *    - for global memory
- 	 *    - address is a function of warp_id + spilt_id + base_address of split table
- 	 *    - the size
- 	 */
- 	unsigned entry_to_replace = get_replacement_candidate();
- 	//printf("virtualization of entry %u:%u:%u\n",entry_to_replace,m_num_physical_entries,m_num_entries);
- 	assert(!m_splits_table[entry_to_replace].m_virtual);
- 	m_splits_table[entry_to_replace].m_virtual = true;
- 	m_num_physical_entries--;
- 	assert(m_num_physical_entries != (unsigned)-1);
+  assert(m_spill_st_entry.empty());
+  /*
+   * - Choose replacement candidate
+   * - mark the entry as virtual
+   * - Create a warp_inst_t that contains the following information:
+   *    - store instruction
+   *    - for global memory
+   *    - address is a function of warp_id + spilt_id + base_address of split
+   * table
+   *    - the size
+   */
+  unsigned entry_to_replace = get_replacement_candidate();
+  // printf("virtualization of entry
+  // %u:%u:%u\n",entry_to_replace,m_num_physical_entries,m_num_entries);
+  assert(!m_splits_table[entry_to_replace].m_virtual);
+  m_splits_table[entry_to_replace].m_virtual = true;
+  m_num_physical_entries--;
+  assert(m_num_physical_entries != (unsigned)-1);
 
- 	/*
- 	 * Size of ST entry:
- 	 * (PC-32bits, RPC-32bits, Active Mask-32-bits: : 12-bytes )
- 	 */
+  /*
+   * Size of ST entry:
+   * (PC-32bits, RPC-32bits, Active Mask-32-bits: : 12-bytes )
+   */
 
-  address_type pc = (m_warp_id*m_warp_size + entry_to_replace)*MAX_BRU_VIR_PER_SPLIT;
+  address_type pc =
+      (m_warp_id * m_warp_size + entry_to_replace) * MAX_BRU_VIR_PER_SPLIT;
   address_type ppc = pc + BRU_VIR_START;
   unsigned nbytes = 12;
-  unsigned offset_in_block = pc & (m_config->m_L1D_config.get_line_sz()-1);
-  if((offset_in_block + nbytes) > m_config->m_L1I_config.get_line_sz())
+  unsigned offset_in_block = pc & (m_config->m_L1D_config.get_line_sz() - 1);
+  if ((offset_in_block + nbytes) > m_config->m_L1I_config.get_line_sz())
     nbytes = (m_config->m_L1D_config.get_line_sz() - offset_in_block);
 
-  mem_access_t acc(BRU_ST_SPILL,ppc,nbytes,true, GPGPU_Context());
+  mem_access_t acc(BRU_ST_SPILL, ppc, nbytes, true, GPGPU_Context());
   m_spill_st_entry.space = memory_space_t(local_space);
   m_spill_st_entry.cache_op = CACHE_WRITE_BACK;
   m_spill_st_entry.op = STORE_OP;
   m_spill_st_entry.mem_op = NOT_TEX;
- 	m_spill_st_entry.memory_op = bru_st_spill_request;
+  m_spill_st_entry.memory_op = bru_st_spill_request;
   m_spill_st_entry.pc = ppc;
- 	m_spill_st_entry.occupy();
- 	m_spill_st_entry.set_warp_id(m_warp_id);
- 	m_spill_st_entry.set_active(0);
- 	m_spill_st_entry.inject_mem_acccesses(acc);
- 	GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_st_spills++;
+  m_spill_st_entry.occupy();
+  m_spill_st_entry.set_warp_id(m_warp_id);
+  m_spill_st_entry.set_active(0);
+  m_spill_st_entry.inject_mem_acccesses(acc);
+  GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_st_spills++;
 
   return true;
 }
 
-
-
 bool simt_splits_table::fill_st_entry(unsigned entry) {
- 	if(!m_fill_st_entry.empty()) return false;
- 	/*
- 	 * - Check if the m_spill_st_entry is empty
- 	 *    - If not return false
- 	 *    - If yes, create a warp_inst_t that contains the following information:
- 	 *      - load instruction
- 	 *      - for global memory
- 	 *      - address is a function of warp_id + spilt_id + base_address of split table
- 	 *      - the size
- 	 */
-  address_type pc  = (m_warp_id*m_warp_size+entry)*MAX_BRU_VIR_PER_SPLIT;
+  if (!m_fill_st_entry.empty()) return false;
+  /*
+   * - Check if the m_spill_st_entry is empty
+   *    - If not return false
+   *    - If yes, create a warp_inst_t that contains the following information:
+   *      - load instruction
+   *      - for global memory
+   *      - address is a function of warp_id + spilt_id + base_address of split
+   * table
+   *      - the size
+   */
+  address_type pc = (m_warp_id * m_warp_size + entry) * MAX_BRU_VIR_PER_SPLIT;
   address_type ppc = pc + BRU_VIR_START;
   unsigned nbytes = 12;
-  unsigned offset_in_block = pc & (m_config->m_L1D_config.get_line_sz()-1);
-  if( (offset_in_block + nbytes) > m_config->m_L1I_config.get_line_sz() )
+  unsigned offset_in_block = pc & (m_config->m_L1D_config.get_line_sz() - 1);
+  if ((offset_in_block + nbytes) > m_config->m_L1I_config.get_line_sz())
     nbytes = (m_config->m_L1D_config.get_line_sz() - offset_in_block);
 
-  mem_access_t acc(BRU_ST_FILL,ppc,nbytes,false, GPGPU_Context());
+  mem_access_t acc(BRU_ST_FILL, ppc, nbytes, false, GPGPU_Context());
   m_fill_st_entry.space = memory_space_t(local_space);
   m_fill_st_entry.cache_op = CACHE_ALL;
   m_fill_st_entry.op = LOAD_OP;
@@ -1561,79 +1624,83 @@ bool simt_splits_table::fill_st_entry(unsigned entry) {
   return true;
 }
 
-
 void simt_splits_table::cycle() {
- 	/*
- 	 *  - Send the fill request through memory_cycle
- 	 *  - free m_spill_st_entry
- 	 */
- 	if (!m_spill_st_entry.empty()) {
+  /*
+   *  - Send the fill request through memory_cycle
+   *  - free m_spill_st_entry
+   */
+  if (!m_spill_st_entry.empty()) {
     enum mem_stage_stall_type rc_fail = NO_RC_FAIL;
     mem_stage_access_type type;
- 		bool done = true;
- 		done &= m_shader->memory_cycle(m_spill_st_entry,rc_fail, type);
- 		if (done) {
- 			m_spill_st_entry.clear();
- 			m_spill_st_entry.clear_pending_mem_requests();
- 			unsigned entry = (m_spill_st_entry.pc - BRU_VIR_START - (m_spill_st_entry.get_warp_id()*m_config->warp_size)*MAX_BRU_VIR_PER_SPLIT)/(MAX_BRU_VIR_PER_SPLIT);
- 		}
- 	}
+    bool done = true;
+    done &= m_shader->memory_cycle(m_spill_st_entry, rc_fail, type);
+    if (done) {
+      m_spill_st_entry.clear();
+      m_spill_st_entry.clear_pending_mem_requests();
+      unsigned entry = (m_spill_st_entry.pc - BRU_VIR_START -
+                        (m_spill_st_entry.get_warp_id() * m_config->warp_size) *
+                            MAX_BRU_VIR_PER_SPLIT) /
+                       (MAX_BRU_VIR_PER_SPLIT);
+    }
+  }
 
- 	if (!m_fill_st_entry.empty()) {
+  if (!m_fill_st_entry.empty()) {
     enum mem_stage_stall_type rc_fail = NO_RC_FAIL;
     mem_stage_access_type type;
- 		bool done = true;
- 		done &= m_shader->memory_cycle(m_fill_st_entry,rc_fail, type);
- 		if (done) {
- 			m_fill_st_entry.clear();
- 			m_fill_st_entry.clear_pending_mem_requests();
- 			unsigned entry = (m_fill_st_entry.pc - BRU_VIR_START - (m_fill_st_entry.get_warp_id()*m_config->warp_size)*MAX_BRU_VIR_PER_SPLIT)/(MAX_BRU_VIR_PER_SPLIT);
- 		}
- 	}
+    bool done = true;
+    done &= m_shader->memory_cycle(m_fill_st_entry, rc_fail, type);
+    if (done) {
+      m_fill_st_entry.clear();
+      m_fill_st_entry.clear_pending_mem_requests();
+      unsigned entry = (m_fill_st_entry.pc - BRU_VIR_START -
+                        (m_fill_st_entry.get_warp_id() * m_config->warp_size) *
+                            MAX_BRU_VIR_PER_SPLIT) /
+                       (MAX_BRU_VIR_PER_SPLIT);
+    }
+  }
 
+  if (m_response_st_entry != -1) {
+    if (m_num_physical_entries == m_max_st_size) {
+      bool spilled = spill_st_entry();
+      if (spilled) {
+        assert(m_num_physical_entries < m_max_st_size);
+        m_splits_table[m_response_st_entry].m_virtual = false;
+        m_splits_table[m_response_st_entry].m_transient = false;
+        m_num_transient_entries--;
+        m_num_physical_entries++;
+        m_response_st_entry = -1;
+      }
+    } else {
+      assert(m_num_physical_entries < m_max_st_size);
+      m_splits_table[m_response_st_entry].m_virtual = false;
+      m_splits_table[m_response_st_entry].m_transient = false;
+      m_num_transient_entries--;
+      m_num_physical_entries++;
+      m_response_st_entry = -1;
+    }
+  }
 
- 	if (m_response_st_entry != -1) {
- 		if (m_num_physical_entries == m_max_st_size) {
- 			bool spilled = spill_st_entry();
- 			if (spilled) {
- 				assert(m_num_physical_entries<m_max_st_size);
- 				m_splits_table[m_response_st_entry].m_virtual = false;
- 				m_splits_table[m_response_st_entry].m_transient = false;
- 				m_num_transient_entries--;
- 				m_num_physical_entries++;
- 				m_response_st_entry = -1;
- 			}
- 		} else {
- 			assert(m_num_physical_entries < m_max_st_size);
- 			m_splits_table[m_response_st_entry].m_virtual = false;
- 			m_splits_table[m_response_st_entry].m_transient = false;
- 			m_num_transient_entries--;
- 			m_num_physical_entries++;
- 			m_response_st_entry = -1;
- 		}
- 	}
+  if (m_pending_recvg_entry.m_valid) {
+    unsigned entry = insert_new_entry(m_pending_recvg_entry);
+    if (entry != (unsigned)-1) {
+      m_pending_recvg_entry.m_valid = false;
+    }
+  }
 
- 	if (m_pending_recvg_entry.m_valid) {
- 		unsigned entry = insert_new_entry(m_pending_recvg_entry);
- 		if (entry != (unsigned)-1) {
- 			m_pending_recvg_entry.m_valid = false;
- 		}
- 	}
-
-
- 	if (m_splits_table[m_active_split].m_blocked || (!m_splits_table[m_active_split].m_valid && m_fifo_queue.size() > 0))
- 		push_back();
+  if (m_splits_table[m_active_split].m_blocked ||
+      (!m_splits_table[m_active_split].m_valid && m_fifo_queue.size() > 0))
+    push_back();
 
   // For virtual active splits
- 	if (m_splits_table[m_active_split].m_virtual && !m_splits_table[m_active_split].m_transient)
- 		fill_st_entry(m_active_split);
-
+  if (m_splits_table[m_active_split].m_virtual &&
+      !m_splits_table[m_active_split].m_transient)
+    fill_st_entry(m_active_split);
 }
 
-
-unsigned simt_splits_table::insert_new_entry(simt_splits_table_entry entry, bool recvged) {
- 	if (recvged) {
- 		if (m_num_physical_entries == m_max_st_size) {
+unsigned simt_splits_table::insert_new_entry(simt_splits_table_entry entry,
+                                             bool recvged) {
+  if (recvged) {
+    if (m_num_physical_entries == m_max_st_size) {
       assert(!m_pending_recvg_entry.m_valid);
       m_pending_recvg_entry.m_valid = true;
       m_pending_recvg_entry.m_pc = entry.m_pc;
@@ -1644,235 +1711,272 @@ unsigned simt_splits_table::insert_new_entry(simt_splits_table_entry entry, bool
       m_pending_recvg_entry.m_virtual = false;
       m_pending_recvg_entry.m_type = entry.m_type;
       m_pending_recvg_entry.m_branch_div_cycle = entry.m_branch_div_cycle;
- 			return (unsigned)-1;
- 		}
- 	} else {
- 		if (m_num_physical_entries == m_max_st_size) {
+      return (unsigned)-1;
+    }
+  } else {
+    if (m_num_physical_entries == m_max_st_size) {
       bool spilled = spill_st_entry();
       if (!spilled) {
         return (unsigned)-1;
       }
- 		}
- 	}
- 	assert(m_num_physical_entries < m_max_st_size);
- 	unsigned entry_num = m_invalid_entries.top();
- 	m_invalid_entries.pop();
- 	assert(m_invalid_entries.size() >= 0);
- 	assert(!m_splits_table[entry_num].m_valid);
-
-  AWARE_DPRINTF("Inserting new entry to Splits Table: Entry %d\tPC %d\tRPC %d\tActive Mask%d\n", entry_num, entry.m_pc, entry.m_recvg_pc, entry.m_active_mask);
-
- 	m_splits_table[entry_num].m_pc = entry.m_pc;
- 	m_splits_table[entry_num].m_recvg_pc = entry.m_recvg_pc;
- 	m_splits_table[entry_num].m_recvg_entry = entry.m_recvg_entry;
- 	m_splits_table[entry_num].m_active_mask = entry.m_active_mask;
- 	m_splits_table[entry_num].m_valid = true;
- 	m_splits_table[entry_num].m_virtual = false;
- 	m_splits_table[entry_num].m_type = entry.m_type;
- 	m_splits_table[entry_num].m_branch_div_cycle = entry.m_branch_div_cycle;
- 	m_num_entries++;
- 	m_num_physical_entries++;
- 	assert((m_num_entries+m_invalid_entries.size()) == MAX_VIRTUAL_ST_ENTRIES);
- 	assert(entry_num != (unsigned)-1);
-  unsigned long long gpgpusim_total_cycles = GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_sim_cycle + GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle;
- 	m_fifo_queue.push_back(fifo_entry(entry_num, gpgpusim_total_cycles, m_fifo_queue.size()));
-
- 	return entry_num;
-}
-
-unsigned simt_splits_table::insert_new_entry(address_type pc, address_type rpc, unsigned rpc_entry, const simt_mask_t & tmp_active_mask,splits_table_entry_type type, bool recvged) {
-  unsigned long long gpgpusim_total_cycles = GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_sim_cycle + GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle;
- 	if (recvged) {
- 		if (m_num_physical_entries == m_max_st_size) {
- 			assert(!m_pending_recvg_entry.m_valid);
- 			m_pending_recvg_entry.m_valid = true;
- 			m_pending_recvg_entry.m_pc = pc;
- 			m_pending_recvg_entry.m_recvg_pc = rpc;
- 			m_pending_recvg_entry.m_recvg_entry = rpc_entry;
- 			m_pending_recvg_entry.m_active_mask = tmp_active_mask;
- 			m_pending_recvg_entry.m_valid = true;
- 			m_pending_recvg_entry.m_virtual = false;
- 			m_pending_recvg_entry.m_type = type;
- 			m_pending_recvg_entry.m_branch_div_cycle = gpgpusim_total_cycles;
- 			return (unsigned)-1;
- 		}
- 	} else {
- 		if (m_num_physical_entries == m_max_st_size) {
-      bool spilled = spill_st_entry();
-      if (!spilled) {
-        return (unsigned)-1;
-      }
- 		}
- 	}
-
- 	unsigned entry = m_invalid_entries.top();
- 	m_invalid_entries.pop();
-  if (m_invalid_entries.size() < 0) {
-    print(stdout);
-    abort();
+    }
   }
- 	assert(!m_splits_table[entry].m_valid);
- 	m_splits_table[entry].m_pc = pc;
- 	m_splits_table[entry].m_recvg_pc = rpc;
- 	m_splits_table[entry].m_recvg_entry = rpc_entry;
- 	m_splits_table[entry].m_active_mask = tmp_active_mask;
- 	m_splits_table[entry].m_valid = true;
- 	m_splits_table[entry].m_type=type;
- 	m_num_entries++;
- 	m_num_physical_entries++;
-  assert((m_num_entries+m_invalid_entries.size()) == MAX_VIRTUAL_ST_ENTRIES);
- 	assert(entry != (unsigned)-1);
- 	m_fifo_queue.push_back(fifo_entry(entry, gpgpusim_total_cycles, m_fifo_queue.size()));
- 	return entry;
-}
-
-
-unsigned simt_splits_table::insert_new_entry(address_type pc, address_type rpc, unsigned rpc_entry, const simt_mask_t & tmp_active_mask,splits_table_entry_type type, bool call_ret, bool recvged) {
-  unsigned long long gpgpusim_total_cycles = GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_sim_cycle + GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle;
- 	if (recvged) {
- 		if (m_num_physical_entries == m_max_st_size) {
- 			assert(!m_pending_recvg_entry.m_valid);
- 			m_pending_recvg_entry.m_valid = true;
- 			m_pending_recvg_entry.m_pc = pc;
- 			m_pending_recvg_entry.m_recvg_pc = rpc;
- 			m_pending_recvg_entry.m_recvg_entry = rpc_entry;
- 			m_pending_recvg_entry.m_active_mask = tmp_active_mask;
- 			m_pending_recvg_entry.m_valid = true;
- 			m_pending_recvg_entry.m_virtual = false;
- 			m_pending_recvg_entry.m_type = type;
- 			m_pending_recvg_entry.m_branch_div_cycle = gpgpusim_total_cycles;
- 			return (unsigned)-1;
- 		}
- 	} else {
- 		if (m_num_physical_entries == m_max_st_size) {
-      bool spilled = spill_st_entry();
-      if (!spilled) {
-        return (unsigned)-1;
-      }
- 		}
- 	}
-
- 	unsigned entry = m_invalid_entries.top();
- 	m_invalid_entries.pop();
-  if (m_invalid_entries.size() < 0) {
-    print(stdout);
-    abort();
-  }
- 	assert(!m_splits_table[entry].m_valid);
- 	m_splits_table[entry].m_pc = pc;
- 	m_splits_table[entry].m_recvg_pc = rpc;
- 	m_splits_table[entry].m_recvg_entry = rpc_entry;
- 	m_splits_table[entry].m_active_mask = tmp_active_mask;
- 	m_splits_table[entry].m_valid = true;
- 	m_splits_table[entry].m_type=type;
- 	m_num_entries++;
- 	m_num_physical_entries++;
-  assert((m_num_entries+m_invalid_entries.size()) == MAX_VIRTUAL_ST_ENTRIES);
- 	assert(entry != (unsigned)-1);
- 	m_fifo_queue.push_front(fifo_entry(entry, gpgpusim_total_cycles, m_fifo_queue.size()));
- 	return entry;
-}
-
-
-unsigned simt_reconvergence_table::insert_new_entry(address_type pc, address_type rpc, unsigned rpc_entry, const simt_mask_t & tmp_active_mask,splits_table_entry_type type) {
- 	/*
- 	 * If all physical entries are occupied will need
- 	 * to spill an existing entry (spill one that has
- 	 * no associated non-virtual ST entry)
- 	 */
-  unsigned long long gpgpusim_total_cycles = GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_sim_cycle + GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle;
- 	if (m_num_physical_entries == m_max_rec_size) {
- 		 bool spilled = spill_rec_entry();
- 		 /*
- 		  * This is guaranteed because branch instructions of a warp are scheduled
- 		  * only if there is a space to spill entries.
- 		  */
- 		 assert(spilled);
- 	}
- 	assert(tmp_active_mask.any());
- 	int entry_num = m_invalid_entries.top();
- 	m_invalid_entries.pop();
+  assert(m_num_physical_entries < m_max_st_size);
+  unsigned entry_num = m_invalid_entries.top();
+  m_invalid_entries.pop();
   assert(m_invalid_entries.size() >= 0);
- 	assert(!m_recvg_table[entry_num].m_valid);
- 	m_recvg_table[entry_num].m_pc = pc;
- 	m_recvg_table[entry_num].m_recvg_pc = rpc;
- 	m_recvg_table[entry_num].m_recvg_entry = rpc_entry;
- 	m_recvg_table[entry_num].m_active_mask = tmp_active_mask;
- 	m_recvg_table[entry_num].m_pending_mask = tmp_active_mask;
- 	m_recvg_table[entry_num].m_valid = true;
- 	m_recvg_table[entry_num].m_branch_rec_cycle = gpgpusim_total_cycles;
- 	m_recvg_table[entry_num].m_type = type;
- 	m_num_entries++;
- 	m_num_physical_entries++;
- 	assert(entry_num != (unsigned)-1);
- 	return entry_num;
+  assert(!m_splits_table[entry_num].m_valid);
+
+  AWARE_DPRINTF(
+      "Inserting new entry to Splits Table: Entry %d\tPC %d\tRPC %d\tActive "
+      "Mask%d\n",
+      entry_num, entry.m_pc, entry.m_recvg_pc, entry.m_active_mask);
+
+  m_splits_table[entry_num].m_pc = entry.m_pc;
+  m_splits_table[entry_num].m_recvg_pc = entry.m_recvg_pc;
+  m_splits_table[entry_num].m_recvg_entry = entry.m_recvg_entry;
+  m_splits_table[entry_num].m_active_mask = entry.m_active_mask;
+  m_splits_table[entry_num].m_valid = true;
+  m_splits_table[entry_num].m_virtual = false;
+  m_splits_table[entry_num].m_type = entry.m_type;
+  m_splits_table[entry_num].m_branch_div_cycle = entry.m_branch_div_cycle;
+  m_num_entries++;
+  m_num_physical_entries++;
+  assert((m_num_entries + m_invalid_entries.size()) == MAX_VIRTUAL_ST_ENTRIES);
+  assert(entry_num != (unsigned)-1);
+  unsigned long long gpgpusim_total_cycles =
+      GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_sim_cycle +
+      GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle;
+  m_fifo_queue.push_back(
+      fifo_entry(entry_num, gpgpusim_total_cycles, m_fifo_queue.size()));
+
+  return entry_num;
 }
 
-void simt_reconvergence_table::update_masks_upon_time_out(unsigned recvg_entry,const simt_mask_t & reconverged_mask) {
- 	m_recvg_table[recvg_entry].m_active_mask = m_recvg_table[recvg_entry].m_pending_mask;
+unsigned simt_splits_table::insert_new_entry(address_type pc, address_type rpc,
+                                             unsigned rpc_entry,
+                                             const simt_mask_t &tmp_active_mask,
+                                             splits_table_entry_type type,
+                                             bool recvged) {
+  unsigned long long gpgpusim_total_cycles =
+      GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_sim_cycle +
+      GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle;
+  if (recvged) {
+    if (m_num_physical_entries == m_max_st_size) {
+      assert(!m_pending_recvg_entry.m_valid);
+      m_pending_recvg_entry.m_valid = true;
+      m_pending_recvg_entry.m_pc = pc;
+      m_pending_recvg_entry.m_recvg_pc = rpc;
+      m_pending_recvg_entry.m_recvg_entry = rpc_entry;
+      m_pending_recvg_entry.m_active_mask = tmp_active_mask;
+      m_pending_recvg_entry.m_valid = true;
+      m_pending_recvg_entry.m_virtual = false;
+      m_pending_recvg_entry.m_type = type;
+      m_pending_recvg_entry.m_branch_div_cycle = gpgpusim_total_cycles;
+      return (unsigned)-1;
+    }
+  } else {
+    if (m_num_physical_entries == m_max_st_size) {
+      bool spilled = spill_st_entry();
+      if (!spilled) {
+        return (unsigned)-1;
+      }
+    }
+  }
+
+  unsigned entry = m_invalid_entries.top();
+  m_invalid_entries.pop();
+  if (m_invalid_entries.size() < 0) {
+    print(stdout);
+    abort();
+  }
+  assert(!m_splits_table[entry].m_valid);
+  m_splits_table[entry].m_pc = pc;
+  m_splits_table[entry].m_recvg_pc = rpc;
+  m_splits_table[entry].m_recvg_entry = rpc_entry;
+  m_splits_table[entry].m_active_mask = tmp_active_mask;
+  m_splits_table[entry].m_valid = true;
+  m_splits_table[entry].m_type = type;
+  m_num_entries++;
+  m_num_physical_entries++;
+  assert((m_num_entries + m_invalid_entries.size()) == MAX_VIRTUAL_ST_ENTRIES);
+  assert(entry != (unsigned)-1);
+  m_fifo_queue.push_back(
+      fifo_entry(entry, gpgpusim_total_cycles, m_fifo_queue.size()));
+  return entry;
 }
 
+unsigned simt_splits_table::insert_new_entry(address_type pc, address_type rpc,
+                                             unsigned rpc_entry,
+                                             const simt_mask_t &tmp_active_mask,
+                                             splits_table_entry_type type,
+                                             bool call_ret, bool recvged) {
+  unsigned long long gpgpusim_total_cycles =
+      GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_sim_cycle +
+      GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle;
+  if (recvged) {
+    if (m_num_physical_entries == m_max_st_size) {
+      assert(!m_pending_recvg_entry.m_valid);
+      m_pending_recvg_entry.m_valid = true;
+      m_pending_recvg_entry.m_pc = pc;
+      m_pending_recvg_entry.m_recvg_pc = rpc;
+      m_pending_recvg_entry.m_recvg_entry = rpc_entry;
+      m_pending_recvg_entry.m_active_mask = tmp_active_mask;
+      m_pending_recvg_entry.m_valid = true;
+      m_pending_recvg_entry.m_virtual = false;
+      m_pending_recvg_entry.m_type = type;
+      m_pending_recvg_entry.m_branch_div_cycle = gpgpusim_total_cycles;
+      return (unsigned)-1;
+    }
+  } else {
+    if (m_num_physical_entries == m_max_st_size) {
+      bool spilled = spill_st_entry();
+      if (!spilled) {
+        return (unsigned)-1;
+      }
+    }
+  }
+
+  unsigned entry = m_invalid_entries.top();
+  m_invalid_entries.pop();
+  if (m_invalid_entries.size() < 0) {
+    print(stdout);
+    abort();
+  }
+  assert(!m_splits_table[entry].m_valid);
+  m_splits_table[entry].m_pc = pc;
+  m_splits_table[entry].m_recvg_pc = rpc;
+  m_splits_table[entry].m_recvg_entry = rpc_entry;
+  m_splits_table[entry].m_active_mask = tmp_active_mask;
+  m_splits_table[entry].m_valid = true;
+  m_splits_table[entry].m_type = type;
+  m_num_entries++;
+  m_num_physical_entries++;
+  assert((m_num_entries + m_invalid_entries.size()) == MAX_VIRTUAL_ST_ENTRIES);
+  assert(entry != (unsigned)-1);
+  m_fifo_queue.push_front(
+      fifo_entry(entry, gpgpusim_total_cycles, m_fifo_queue.size()));
+  return entry;
+}
+
+unsigned simt_reconvergence_table::insert_new_entry(
+    address_type pc, address_type rpc, unsigned rpc_entry,
+    const simt_mask_t &tmp_active_mask, splits_table_entry_type type) {
+  /*
+   * If all physical entries are occupied will need
+   * to spill an existing entry (spill one that has
+   * no associated non-virtual ST entry)
+   */
+  unsigned long long gpgpusim_total_cycles =
+      GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_sim_cycle +
+      GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle;
+  if (m_num_physical_entries == m_max_rec_size) {
+    bool spilled = spill_rec_entry();
+    /*
+     * This is guaranteed because branch instructions of a warp are scheduled
+     * only if there is a space to spill entries.
+     */
+    assert(spilled);
+  }
+  assert(tmp_active_mask.any());
+  int entry_num = m_invalid_entries.top();
+  m_invalid_entries.pop();
+  assert(m_invalid_entries.size() >= 0);
+  assert(!m_recvg_table[entry_num].m_valid);
+  m_recvg_table[entry_num].m_pc = pc;
+  m_recvg_table[entry_num].m_recvg_pc = rpc;
+  m_recvg_table[entry_num].m_recvg_entry = rpc_entry;
+  m_recvg_table[entry_num].m_active_mask = tmp_active_mask;
+  m_recvg_table[entry_num].m_pending_mask = tmp_active_mask;
+  m_recvg_table[entry_num].m_valid = true;
+  m_recvg_table[entry_num].m_branch_rec_cycle = gpgpusim_total_cycles;
+  m_recvg_table[entry_num].m_type = type;
+  m_num_entries++;
+  m_num_physical_entries++;
+  assert(entry_num != (unsigned)-1);
+  return entry_num;
+}
+
+void simt_reconvergence_table::update_masks_upon_time_out(
+    unsigned recvg_entry, const simt_mask_t &reconverged_mask) {
+  m_recvg_table[recvg_entry].m_active_mask =
+      m_recvg_table[recvg_entry].m_pending_mask;
+}
 
 unsigned simt_reconvergence_table::address_to_entry(warp_inst_t inst) {
- 	if (!inst.empty()) {
- 		unsigned wid = inst.warp_id();
- 		address_type addr = inst.pc;
- 		unsigned entry = (addr - BRU_VIR_START - (wid*m_config->warp_size)*MAX_BRU_VIR_PER_SPLIT - MAX_BRU_VIR_PER_SPLIT/2)/(MAX_BRU_VIR_PER_SPLIT);
- 		return entry;
- 	}
- 	return (unsigned)-1;
+  if (!inst.empty()) {
+    unsigned wid = inst.warp_id();
+    address_type addr = inst.pc;
+    unsigned entry = (addr - BRU_VIR_START -
+                      (wid * m_config->warp_size) * MAX_BRU_VIR_PER_SPLIT -
+                      MAX_BRU_VIR_PER_SPLIT / 2) /
+                     (MAX_BRU_VIR_PER_SPLIT);
+    return entry;
+  }
+  return (unsigned)-1;
 }
 
+bool simt_reconvergence_table::update_pending_mask(
+    unsigned recvg_entry, address_type recvg_pc,
+    const simt_mask_t &tmp_active_mask, bool &suspended) {
+  unsigned long long gpgpusim_total_cycles =
+      GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_sim_cycle +
+      GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle;
+  assert(m_recvg_table[recvg_entry].m_pc == recvg_pc);
+  assert(m_recvg_table[recvg_entry].m_valid);
+  assert(m_recvg_table[recvg_entry].m_pending_mask.any());
+  const simt_mask_t &reconverged_mask =
+      (~m_recvg_table[recvg_entry].m_pending_mask) &
+      (m_recvg_table[recvg_entry].m_active_mask);
+  unsigned long long diff =
+      (gpgpusim_total_cycles - m_recvg_table[recvg_entry].m_branch_rec_cycle);
+  if (reconverged_mask.any()) {
+    if (diff > GPGPU_Context()->the_gpgpusim->g_the_gpu->max_recvg_time) {
+      GPGPU_Context()->the_gpgpusim->g_the_gpu->max_recvg_time = diff;
+    }
+  }
 
-bool simt_reconvergence_table::update_pending_mask(unsigned recvg_entry,address_type recvg_pc,const simt_mask_t & tmp_active_mask, bool &suspended) {
-  unsigned long long gpgpusim_total_cycles = GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_sim_cycle + GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle;
- 	assert(m_recvg_table[recvg_entry].m_pc == recvg_pc);
- 	assert(m_recvg_table[recvg_entry].m_valid);
- 	assert(m_recvg_table[recvg_entry].m_pending_mask.any());
- 	const simt_mask_t & reconverged_mask = (~m_recvg_table[recvg_entry].m_pending_mask) & (m_recvg_table[recvg_entry].m_active_mask);
- 	unsigned long long diff = (gpgpusim_total_cycles - m_recvg_table[recvg_entry].m_branch_rec_cycle);
- 	if (reconverged_mask.any()) {
- 		if (diff>GPGPU_Context()->the_gpgpusim->g_the_gpu->max_recvg_time) {
- 			GPGPU_Context()->the_gpgpusim->g_the_gpu->max_recvg_time = diff;
- 		}
- 	}
-
- 	if (m_recvg_table[recvg_entry].m_virtual) {
- 		suspended = true;
- 		assert(!m_pending_update_entry.m_valid);
- 		if (!m_recvg_table[recvg_entry].m_transient) {
- 			m_pending_update_entry.m_valid=true;
- 			m_pending_update_entry.m_active_mask = tmp_active_mask;
- 			m_pending_update_entry.m_branch_rec_cycle = gpgpusim_total_cycles;
- 			m_pending_update_entry.m_recvg_entry = recvg_entry;
- 			m_pending_update_entry.m_transient = false;
- 		}
- 	} else {
- 		m_recvg_table[recvg_entry].m_branch_rec_cycle = gpgpusim_total_cycles;
- 		m_recvg_table[recvg_entry].m_pending_mask = m_recvg_table[recvg_entry].m_pending_mask & ~ tmp_active_mask;
- 		if (!m_recvg_table[recvg_entry].m_pending_mask.any()) {
- 			invalidate(recvg_entry);
- 			return true;
- 		}
- 	}
- 	return false;
+  if (m_recvg_table[recvg_entry].m_virtual) {
+    suspended = true;
+    assert(!m_pending_update_entry.m_valid);
+    if (!m_recvg_table[recvg_entry].m_transient) {
+      m_pending_update_entry.m_valid = true;
+      m_pending_update_entry.m_active_mask = tmp_active_mask;
+      m_pending_update_entry.m_branch_rec_cycle = gpgpusim_total_cycles;
+      m_pending_update_entry.m_recvg_entry = recvg_entry;
+      m_pending_update_entry.m_transient = false;
+    }
+  } else {
+    m_recvg_table[recvg_entry].m_branch_rec_cycle = gpgpusim_total_cycles;
+    m_recvg_table[recvg_entry].m_pending_mask =
+        m_recvg_table[recvg_entry].m_pending_mask & ~tmp_active_mask;
+    if (!m_recvg_table[recvg_entry].m_pending_mask.any()) {
+      invalidate(recvg_entry);
+      return true;
+    }
+  }
+  return false;
 }
-
 
 void simt_splits_table::push_back() {
-  unsigned long long gpgpusim_total_cycles = GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_sim_cycle + GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle;
+  unsigned long long gpgpusim_total_cycles =
+      GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_sim_cycle +
+      GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle;
   fifo_entry cur_active_split = m_fifo_queue.front();
   assert(cur_active_split.m_st_entry == m_active_split);
   m_fifo_queue.pop_front();
-  cur_active_split.update_insertion_cycle(gpgpusim_total_cycles, m_fifo_queue.size());
+  cur_active_split.update_insertion_cycle(gpgpusim_total_cycles,
+                                          m_fifo_queue.size());
   m_fifo_queue.push_back(cur_active_split);
   fifo_entry new_active_split = m_fifo_queue.front();
   m_active_split = new_active_split.m_st_entry;
 
-  AWARE_DPRINTF("Push current active split %d to back; New active split %d\n", cur_active_split.m_st_entry, m_active_split);
+  AWARE_DPRINTF("Push current active split %d to back; New active split %d\n",
+                cur_active_split.m_st_entry, m_active_split);
 
   if (m_splits_table[m_active_split].m_virtual) {
-    if (!m_splits_table[m_active_split].m_transient && !m_splits_table[m_active_split].m_blocked) {
+    if (!m_splits_table[m_active_split].m_transient &&
+        !m_splits_table[m_active_split].m_blocked) {
       bool fill_request_sent = fill_st_entry(m_active_split);
     }
   }
@@ -1881,18 +1985,19 @@ void simt_splits_table::push_back() {
 }
 
 void simt_splits_table::update_active_entry() {
- 	if (m_fifo_queue.size() > 0) {
- 		fifo_entry new_active_entry = m_fifo_queue.front();
- 		m_active_split = new_active_entry.m_st_entry;
- 		if (new_active_entry.m_blocked || m_splits_table[m_active_split].m_virtual) push_back();
+  if (m_fifo_queue.size() > 0) {
+    fifo_entry new_active_entry = m_fifo_queue.front();
+    m_active_split = new_active_entry.m_st_entry;
+    if (new_active_entry.m_blocked || m_splits_table[m_active_split].m_virtual)
+      push_back();
     assert(m_num_entries > 0);
     assert((m_splits_table.find(m_active_split) != m_splits_table.end()));
     assert(m_splits_table[m_active_split].m_valid);
     assert(m_splits_table[m_active_split].m_active_mask.any());
- 	  GPGPU_Context()->the_gpgpusim->g_the_gpu->splits_table_update_active_entry++;
+    GPGPU_Context()
+        ->the_gpgpusim->g_the_gpu->splits_table_update_active_entry++;
   }
 }
-
 
 void simt_splits_table::invalidate() {
   if (!m_splits_table[m_active_split].m_valid) return;
@@ -1907,71 +2012,68 @@ void simt_splits_table::invalidate() {
   m_num_physical_entries--;
   assert(m_num_physical_entries != (unsigned)-1);
   m_invalid_entries.push(m_active_split);
-  assert((m_num_entries+m_invalid_entries.size()) == MAX_VIRTUAL_ST_ENTRIES);
+  assert((m_num_entries + m_invalid_entries.size()) == MAX_VIRTUAL_ST_ENTRIES);
 }
 
 void simt_splits_table::update_pc(address_type new_pc) {
- 	assert((m_splits_table.find(m_active_split) != m_splits_table.end()));
- 	assert(m_splits_table[m_active_split].m_valid);
- 	assert(m_fifo_queue.front().m_st_entry == m_active_split);
- 	m_splits_table[m_active_split].m_pc = new_pc;
+  assert((m_splits_table.find(m_active_split) != m_splits_table.end()));
+  assert(m_splits_table[m_active_split].m_valid);
+  assert(m_fifo_queue.front().m_st_entry == m_active_split);
+  m_splits_table[m_active_split].m_pc = new_pc;
 }
 
 void simt_splits_table::set_to_blocked() {
- 	m_splits_table[m_active_split].m_blocked = true;
+  m_splits_table[m_active_split].m_blocked = true;
 }
 
 void simt_splits_table::unset_blocked() {
- 	m_splits_table[m_active_split].m_blocked = false;
+  m_splits_table[m_active_split].m_blocked = false;
 }
 
 void simt_splits_table::unset_blocked(unsigned entry) {
- 	m_splits_table[entry].m_blocked = false;
+  m_splits_table[entry].m_blocked = false;
 }
 
 void simt_splits_table::release_blocked() {
- 	for (unsigned i=0; i<MAX_VIRTUAL_ST_ENTRIES; i++) {
- 		if(m_splits_table[i].m_valid)
- 			unset_blocked(i);
- 	}
+  for (unsigned i = 0; i < MAX_VIRTUAL_ST_ENTRIES; i++) {
+    if (m_splits_table[i].m_valid) unset_blocked(i);
+  }
 
- 	for (unsigned i=0; i< m_fifo_queue.size(); i++) {
- 		m_fifo_queue[i].m_blocked = false;
- 	}
+  for (unsigned i = 0; i < m_fifo_queue.size(); i++) {
+    m_fifo_queue[i].m_blocked = false;
+  }
 }
 
 bool simt_splits_table::is_blocked_or_virtual() {
- 	bool blocked = true;
- 	for (unsigned i=0; i<MAX_VIRTUAL_ST_ENTRIES; i++) {
- 		if (m_splits_table[i].m_valid)
- 			blocked &= (m_splits_table[i].m_blocked || m_splits_table[i].m_virtual);
- 	}
- 	return (blocked && m_num_entries>0);
+  bool blocked = true;
+  for (unsigned i = 0; i < MAX_VIRTUAL_ST_ENTRIES; i++) {
+    if (m_splits_table[i].m_valid)
+      blocked &= (m_splits_table[i].m_blocked || m_splits_table[i].m_virtual);
+  }
+  return (blocked && m_num_entries > 0);
 }
 
 bool simt_splits_table::is_virtual() {
- 	bool virtualized = true;
- 	for (unsigned i=0; i<MAX_VIRTUAL_ST_ENTRIES; i++) {
- 		if (m_splits_table[i].m_valid)
- 			virtualized &= (m_splits_table[i].m_virtual);
- 	}
- 	return (virtualized && m_num_entries>0);
+  bool virtualized = true;
+  for (unsigned i = 0; i < MAX_VIRTUAL_ST_ENTRIES; i++) {
+    if (m_splits_table[i].m_valid) virtualized &= (m_splits_table[i].m_virtual);
+  }
+  return (virtualized && m_num_entries > 0);
 }
 
 bool simt_splits_table::is_blocked() {
- 	bool blocked = true;
- 	for (unsigned i=0; i<MAX_VIRTUAL_ST_ENTRIES; i++) {
- 		if (m_splits_table[i].m_valid)
- 			blocked &= (m_splits_table[i].m_blocked);
- 	}
- 	return (blocked && m_num_entries>0);
+  bool blocked = true;
+  for (unsigned i = 0; i < MAX_VIRTUAL_ST_ENTRIES; i++) {
+    if (m_splits_table[i].m_valid) blocked &= (m_splits_table[i].m_blocked);
+  }
+  return (blocked && m_num_entries > 0);
 }
 
 bool simt_splits_table::split_reaches_barrier(address_type pc) {
- 	m_fifo_queue.front().m_blocked = true;
- 	set_to_blocked();
- 	update_pc(pc);
- 	return is_blocked();
+  m_fifo_queue.front().m_blocked = true;
+  set_to_blocked();
+  update_pc(pc);
+  return is_blocked();
 }
 
 unsigned simt_splits_table::get_rpc() {
@@ -1999,50 +2101,55 @@ bool simt_splits_table::valid() {
   return m_splits_table[m_active_split].m_valid;
 }
 
-void simt_splits_table::print (FILE *fout) {
- 	printf("max of physical entries = %u\n",m_max_st_size);
- 	printf("num of physical entries = %u\n",m_num_physical_entries);
- 	printf("isBlocked? %u\n",is_blocked());
- 	fprintf(fout, "fifo- f: %02d\n", m_fifo_queue.front().m_st_entry);
- 	fprintf(fout, "fifo- b: %02d\n", m_fifo_queue.back().m_st_entry);
- 	fprintf(fout, "fifo-sz: %02d\n", m_fifo_queue.size());
- 	printf("active entry = %u\n", m_active_split);
- 	printf("Spill Entry %u\n",address_to_entry(m_spill_st_entry));
- 	printf("fill Entry %u\n",address_to_entry(m_fill_st_entry));
- 	printf("Pending Recvg Entry valid: %u\n", m_pending_recvg_entry.m_valid);
- 	printf("Response Entry: %u\n", m_response_st_entry);
- 	for (unsigned k=0; k < MAX_VIRTUAL_ST_ENTRIES; k++) {
+void simt_splits_table::print(FILE *fout) {
+  printf("max of physical entries = %u\n", m_max_st_size);
+  printf("num of physical entries = %u\n", m_num_physical_entries);
+  printf("isBlocked? %u\n", is_blocked());
+  fprintf(fout, "fifo- f: %02d\n", m_fifo_queue.front().m_st_entry);
+  fprintf(fout, "fifo- b: %02d\n", m_fifo_queue.back().m_st_entry);
+  fprintf(fout, "fifo-sz: %02d\n", m_fifo_queue.size());
+  printf("active entry = %u\n", m_active_split);
+  printf("Spill Entry %u\n", address_to_entry(m_spill_st_entry));
+  printf("fill Entry %u\n", address_to_entry(m_fill_st_entry));
+  printf("Pending Recvg Entry valid: %u\n", m_pending_recvg_entry.m_valid);
+  printf("Response Entry: %u\n", m_response_st_entry);
+  for (unsigned k = 0; k < MAX_VIRTUAL_ST_ENTRIES; k++) {
     simt_splits_table_entry splits_table_entry = m_splits_table[k];
-    if(!splits_table_entry.m_valid) continue;
-    if(splits_table_entry.m_virtual) printf("Virtual: ");
-    if(splits_table_entry.m_transient) printf("Transient: ");
-    if(splits_table_entry.m_blocked) printf("Blocked: ");
+    if (!splits_table_entry.m_valid) continue;
+    if (splits_table_entry.m_virtual) printf("Virtual: ");
+    if (splits_table_entry.m_transient) printf("Transient: ");
+    if (splits_table_entry.m_blocked) printf("Blocked: ");
     fprintf(fout, "       %1u ", k);
-    for (unsigned j=0; j<m_warp_size; j++)
-      fprintf(fout, "%c", (splits_table_entry.m_active_mask.test(j)?'1':'0'));
+    for (unsigned j = 0; j < m_warp_size; j++)
+      fprintf(fout, "%c",
+              (splits_table_entry.m_active_mask.test(j) ? '1' : '0'));
     fprintf(fout, " pc: 0x%03x", splits_table_entry.m_pc);
 
     if (splits_table_entry.m_recvg_pc == (unsigned)-1) {
-      fprintf(fout," rp: ----      %s", (splits_table_entry.m_valid==true?" V ":" N "));
+      fprintf(fout, " rp: ----      %s",
+              (splits_table_entry.m_valid == true ? " V " : " N "));
     } else {
-      fprintf(fout," rp: 0x%03x    %s", splits_table_entry.m_recvg_pc, (splits_table_entry.m_valid==true?" V ":" N "));
+      fprintf(fout, " rp: 0x%03x    %s", splits_table_entry.m_recvg_pc,
+              (splits_table_entry.m_valid == true ? " V " : " N "));
     }
 
     fprintf(fout, " %d ", splits_table_entry.m_type);
 
-    GPGPU_Context()->func_sim->ptx_print_insn( splits_table_entry.m_pc, fout );
+    GPGPU_Context()->func_sim->ptx_print_insn(splits_table_entry.m_pc, fout);
 
     if (splits_table_entry.m_recvg_entry == (unsigned)-1) {
-      fprintf(fout," recvg_entry: ----      ");
+      fprintf(fout, " recvg_entry: ----      ");
     } else {
-      fprintf(fout," recvg_entry: 0x%03x    ", splits_table_entry.m_recvg_entry);
+      fprintf(fout, " recvg_entry: 0x%03x    ",
+              splits_table_entry.m_recvg_entry);
     }
-    fprintf(fout,"\n");
+    fprintf(fout, "\n");
   }
 }
 
-
-simt_reconvergence_table::simt_reconvergence_table( unsigned wid,  unsigned warpSize,  const shader_core_config* config, const struct memory_config * m_mem_config, simt_tables * simt_table) {
+simt_reconvergence_table::simt_reconvergence_table(
+    unsigned wid, unsigned warpSize, const shader_core_config *config,
+    const struct memory_config *m_mem_config, simt_tables *simt_table) {
   m_warp_id = wid;
   m_warp_size = warpSize;
   m_active_reconvergence = (unsigned)-1;
@@ -2051,77 +2158,79 @@ simt_reconvergence_table::simt_reconvergence_table( unsigned wid,  unsigned warp
   m_num_transient_entries = 0;
   m_max_rec_size = config->num_rec_entries;
   m_simt_tables = simt_table;
- 	m_spill_rec_entry = warp_inst_t(config);
- 	m_fill_rec_entry = warp_inst_t(config);
- 	m_pending_update_entry = simt_reconvergence_table_entry();
- 	m_response_rec_entry = -1;
- 	m_config = config;
+  m_spill_rec_entry = warp_inst_t(config);
+  m_fill_rec_entry = warp_inst_t(config);
+  m_pending_update_entry = simt_reconvergence_table_entry();
+  m_response_rec_entry = -1;
+  m_config = config;
   reset();
-  assert((m_num_entries+m_invalid_entries.size()) == MAX_VIRTUAL_RT_ENTRIES);
+  assert((m_num_entries + m_invalid_entries.size()) == MAX_VIRTUAL_RT_ENTRIES);
 }
 
 void simt_reconvergence_table::reset() {
   m_num_entries = 0;
- 	m_recvg_table.clear();
-  while(!m_invalid_entries.empty()) m_invalid_entries.pop();
-  for (int i=0; i<MAX_VIRTUAL_RT_ENTRIES; i++) {
+  m_recvg_table.clear();
+  while (!m_invalid_entries.empty()) m_invalid_entries.pop();
+  for (int i = 0; i < MAX_VIRTUAL_RT_ENTRIES; i++) {
     m_recvg_table[i] = simt_reconvergence_table_entry();
   }
- 	for (int i=MAX_VIRTUAL_RT_ENTRIES-1; i>=0; i--) {
- 		m_invalid_entries.push(i);
- 	}
-  assert((m_num_entries+m_invalid_entries.size()) == MAX_VIRTUAL_RT_ENTRIES);
+  for (int i = MAX_VIRTUAL_RT_ENTRIES - 1; i >= 0; i--) {
+    m_invalid_entries.push(i);
+  }
+  assert((m_num_entries + m_invalid_entries.size()) == MAX_VIRTUAL_RT_ENTRIES);
 }
 
 bool simt_reconvergence_table::push_to_rt_response_fifo(unsigned entry) {
- 	if (m_response_rec_entry == -1) {
- 		m_response_rec_entry = entry;
- 		return true;
- 	}
- 	return false;
+  if (m_response_rec_entry == -1) {
+    m_response_rec_entry = entry;
+    return true;
+  }
+  return false;
 }
 
 unsigned simt_reconvergence_table::get_replacement_candidate() {
- 	unsigned oldest_index = (unsigned)-1;
- 	unsigned long long oldest_update = 0;
- 	for (int i=0; i<MAX_VIRTUAL_RT_ENTRIES;i++) {
- 		if (m_recvg_table[i].m_valid) {
- 			if (!m_recvg_table[i].m_virtual) {
- 				if (oldest_update == 0) {
- 					oldest_index = i;
- 					oldest_update = m_recvg_table[i].m_branch_rec_cycle;
- 				} else {
- 					if (m_recvg_table[i].m_branch_rec_cycle > oldest_update) {
- 						oldest_index = i;
- 						oldest_update = m_recvg_table[i].m_branch_rec_cycle;
- 					}
- 				}
- 			}
- 		}
- 	}
- 	assert(oldest_index != (unsigned)-1);
- 	return oldest_index;
+  unsigned oldest_index = (unsigned)-1;
+  unsigned long long oldest_update = 0;
+  for (int i = 0; i < MAX_VIRTUAL_RT_ENTRIES; i++) {
+    if (m_recvg_table[i].m_valid) {
+      if (!m_recvg_table[i].m_virtual) {
+        if (oldest_update == 0) {
+          oldest_index = i;
+          oldest_update = m_recvg_table[i].m_branch_rec_cycle;
+        } else {
+          if (m_recvg_table[i].m_branch_rec_cycle > oldest_update) {
+            oldest_index = i;
+            oldest_update = m_recvg_table[i].m_branch_rec_cycle;
+          }
+        }
+      }
+    }
+  }
+  assert(oldest_index != (unsigned)-1);
+  return oldest_index;
 }
 
 bool simt_reconvergence_table::fill_rec_entry(unsigned entry) {
- 	if (!m_fill_rec_entry.empty()) return false;
- 	/*
- 	 * - Check if the m_spill_st_entry is empty
- 	 *    - If not return false
- 	 *    - If yes, create a warp_inst_t that contains the following information:
- 	 *      - load instruction
- 	 *      - for global memory
- 	 *      - address is a function of warp_id + spilt_id + base_address of split table
- 	 *      - the size
- 	 */
-  address_type pc = (m_warp_id*m_warp_size+entry)*MAX_BRU_VIR_PER_SPLIT + (MAX_BRU_VIR_PER_SPLIT/2);
+  if (!m_fill_rec_entry.empty()) return false;
+  /*
+   * - Check if the m_spill_st_entry is empty
+   *    - If not return false
+   *    - If yes, create a warp_inst_t that contains the following information:
+   *      - load instruction
+   *      - for global memory
+   *      - address is a function of warp_id + spilt_id + base_address of split
+   * table
+   *      - the size
+   */
+  address_type pc = (m_warp_id * m_warp_size + entry) * MAX_BRU_VIR_PER_SPLIT +
+                    (MAX_BRU_VIR_PER_SPLIT / 2);
   address_type ppc = pc + BRU_VIR_START;
   unsigned nbytes = 16;
-  unsigned offset_in_block = pc & (m_config->m_L1D_config.get_line_sz()-1);
-  if( (offset_in_block+nbytes) > m_config->m_L1I_config.get_line_sz())
-    nbytes = (m_config->m_L1D_config.get_line_sz()-offset_in_block);
+  unsigned offset_in_block = pc & (m_config->m_L1D_config.get_line_sz() - 1);
+  if ((offset_in_block + nbytes) > m_config->m_L1I_config.get_line_sz())
+    nbytes = (m_config->m_L1D_config.get_line_sz() - offset_in_block);
 
-  mem_access_t acc(BRU_RT_FILL,ppc, nbytes, false, GPGPU_Context());
+  mem_access_t acc(BRU_RT_FILL, ppc, nbytes, false, GPGPU_Context());
   m_fill_rec_entry.space = memory_space_t(local_space);
   m_fill_rec_entry.cache_op = CACHE_ALL;
   m_fill_rec_entry.op = LOAD_OP;
@@ -2139,177 +2248,212 @@ bool simt_reconvergence_table::fill_rec_entry(unsigned entry) {
 }
 
 bool simt_reconvergence_table::spill_rec_entry() {
- 	if (!m_spill_rec_entry.empty()) return false;
- 	assert(m_spill_rec_entry.empty());
- 	/*
- 	 * - Choose replacement candidate
- 	 * - mark the entry as virtual
- 	 * - Create a warp_inst_t that contains the following information:
- 	 *    - store instruction
- 	 *    - for global memory
- 	 *    - address is a function of warp_id + spilt_id + base_address of split table
- 	 *    - the size
- 	 *  - Attempt to send the instruction through the memory cycle (if sent - clear m_spill_st_entry)
- 	 */
- 	unsigned entry_to_replace = get_replacement_candidate();
- 	printf("virtualization of entry %u\n",entry_to_replace);
- 	m_recvg_table[entry_to_replace].m_virtual = true;
- 	m_num_physical_entries--;
- 	assert(m_num_physical_entries != (unsigned)-1);
- 	/*
- 	 * Size of ST entry:
- 	 * (PC-32bits, RPC-32bits, Active Mask-32-bits: RPC-entry-5bits, vali/virtual/blocked 3-bits: 12-bytes )
- 	 */
+  if (!m_spill_rec_entry.empty()) return false;
+  assert(m_spill_rec_entry.empty());
+  /*
+   * - Choose replacement candidate
+   * - mark the entry as virtual
+   * - Create a warp_inst_t that contains the following information:
+   *    - store instruction
+   *    - for global memory
+   *    - address is a function of warp_id + spilt_id + base_address of split
+   * table
+   *    - the size
+   *  - Attempt to send the instruction through the memory cycle (if sent -
+   * clear m_spill_st_entry)
+   */
+  unsigned entry_to_replace = get_replacement_candidate();
+  printf("virtualization of entry %u\n", entry_to_replace);
+  m_recvg_table[entry_to_replace].m_virtual = true;
+  m_num_physical_entries--;
+  assert(m_num_physical_entries != (unsigned)-1);
+  /*
+   * Size of ST entry:
+   * (PC-32bits, RPC-32bits, Active Mask-32-bits: RPC-entry-5bits,
+   * vali/virtual/blocked 3-bits: 12-bytes )
+   */
 
-  address_type pc = (m_warp_id*m_warp_size+entry_to_replace)*MAX_BRU_VIR_PER_SPLIT+(MAX_BRU_VIR_PER_SPLIT/2);
+  address_type pc =
+      (m_warp_id * m_warp_size + entry_to_replace) * MAX_BRU_VIR_PER_SPLIT +
+      (MAX_BRU_VIR_PER_SPLIT / 2);
   address_type ppc = pc + BRU_VIR_START;
   unsigned nbytes = 16;
-  unsigned offset_in_block = pc & (m_config->m_L1D_config.get_line_sz()-1);
-  if ((offset_in_block+nbytes) > m_config->m_L1I_config.get_line_sz())
-    nbytes = (m_config->m_L1D_config.get_line_sz()-offset_in_block);
+  unsigned offset_in_block = pc & (m_config->m_L1D_config.get_line_sz() - 1);
+  if ((offset_in_block + nbytes) > m_config->m_L1I_config.get_line_sz())
+    nbytes = (m_config->m_L1D_config.get_line_sz() - offset_in_block);
 
   mem_access_t acc(BRU_RT_SPILL, ppc, nbytes, true, GPGPU_Context());
   m_spill_rec_entry.space = memory_space_t(local_space);
   m_spill_rec_entry.cache_op = CACHE_WRITE_BACK;
   m_spill_rec_entry.op = STORE_OP;
   m_spill_rec_entry.mem_op = NOT_TEX;
- 	m_spill_rec_entry.memory_op = bru_rt_spill_request;
+  m_spill_rec_entry.memory_op = bru_rt_spill_request;
   m_spill_rec_entry.pc = ppc;
- 	m_spill_rec_entry.occupy();
- 	m_spill_rec_entry.set_warp_id(m_warp_id);
- 	m_spill_rec_entry.set_active(0);
- 	m_spill_rec_entry.inject_mem_acccesses(acc);
- 	GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_rt_spills++;
+  m_spill_rec_entry.occupy();
+  m_spill_rec_entry.set_warp_id(m_warp_id);
+  m_spill_rec_entry.set_active(0);
+  m_spill_rec_entry.inject_mem_acccesses(acc);
+  GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_rt_spills++;
   return true;
 }
 
 void simt_reconvergence_table::cycle() {
- 	if (m_pending_update_entry.m_valid && !m_pending_update_entry.m_transient) {
- 		bool sent = fill_rec_entry(m_pending_update_entry.m_recvg_entry);
- 		if (sent) {
- 			m_pending_update_entry.m_transient = true;
- 		}
- 	}
+  if (m_pending_update_entry.m_valid && !m_pending_update_entry.m_transient) {
+    bool sent = fill_rec_entry(m_pending_update_entry.m_recvg_entry);
+    if (sent) {
+      m_pending_update_entry.m_transient = true;
+    }
+  }
 
- 	if (!m_spill_rec_entry.empty()) {
+  if (!m_spill_rec_entry.empty()) {
     enum mem_stage_stall_type rc_fail = NO_RC_FAIL;
     mem_stage_access_type type;
- 		bool done = true;
- 		done &= m_shader->memory_cycle(m_spill_rec_entry, rc_fail, type);
- 		if (done) {
- 			m_spill_rec_entry.clear();
- 			m_spill_rec_entry.clear_pending_mem_requests();
- 			unsigned entry = (m_spill_rec_entry.pc - BRU_VIR_START - (m_spill_rec_entry.get_warp_id()*m_config->warp_size)*MAX_BRU_VIR_PER_SPLIT)/(MAX_BRU_VIR_PER_SPLIT);
- 		}
- 	}
+    bool done = true;
+    done &= m_shader->memory_cycle(m_spill_rec_entry, rc_fail, type);
+    if (done) {
+      m_spill_rec_entry.clear();
+      m_spill_rec_entry.clear_pending_mem_requests();
+      unsigned entry =
+          (m_spill_rec_entry.pc - BRU_VIR_START -
+           (m_spill_rec_entry.get_warp_id() * m_config->warp_size) *
+               MAX_BRU_VIR_PER_SPLIT) /
+          (MAX_BRU_VIR_PER_SPLIT);
+    }
+  }
 
- 	if (!m_fill_rec_entry.empty()) {
+  if (!m_fill_rec_entry.empty()) {
     enum mem_stage_stall_type rc_fail = NO_RC_FAIL;
     mem_stage_access_type type;
- 		bool done = true;
- 		done &= m_shader->memory_cycle(m_fill_rec_entry, rc_fail, type);
- 		if (done) {
- 			m_fill_rec_entry.clear();
- 			m_fill_rec_entry.clear_pending_mem_requests();
- 			unsigned entry = (m_fill_rec_entry.pc - BRU_VIR_START - (m_fill_rec_entry.get_warp_id()*m_config->warp_size)*MAX_BRU_VIR_PER_SPLIT)/(MAX_BRU_VIR_PER_SPLIT);
- 		}
- 	}
+    bool done = true;
+    done &= m_shader->memory_cycle(m_fill_rec_entry, rc_fail, type);
+    if (done) {
+      m_fill_rec_entry.clear();
+      m_fill_rec_entry.clear_pending_mem_requests();
+      unsigned entry = (m_fill_rec_entry.pc - BRU_VIR_START -
+                        (m_fill_rec_entry.get_warp_id() * m_config->warp_size) *
+                            MAX_BRU_VIR_PER_SPLIT) /
+                       (MAX_BRU_VIR_PER_SPLIT);
+    }
+  }
 
- 	if (m_response_rec_entry!=-1) {
- 		if (m_pending_update_entry.m_recvg_entry == m_response_rec_entry) {
- 			assert(m_pending_update_entry.m_valid);
- 			simt_mask_t test = m_recvg_table[m_response_rec_entry].m_pending_mask & ~ m_pending_update_entry.m_active_mask;
- 			bool converged = !test.any();
- 			bool spacefound = !m_simt_tables->is_pending_reconvergence() || (m_simt_tables->st_space_available());
- 			if (m_num_physical_entries == m_max_rec_size) {
- 				bool spilled = spill_rec_entry();
- 				if (spilled && (!converged || (converged && spacefound))) {
- 					assert(m_num_physical_entries <= m_max_rec_size);
- 					m_recvg_table[m_response_rec_entry].m_virtual = false;
- 					m_recvg_table[m_response_rec_entry].m_transient = false;
- 					m_recvg_table[m_response_rec_entry].m_pending_mask = m_recvg_table[m_response_rec_entry].m_pending_mask & ~ m_pending_update_entry.m_active_mask;
- 					m_recvg_table[m_response_rec_entry].m_branch_rec_cycle = m_pending_update_entry.m_branch_rec_cycle;
- 					m_pending_update_entry.m_valid = false;
- 					m_num_transient_entries--;
- 					m_num_physical_entries++;
+  if (m_response_rec_entry != -1) {
+    if (m_pending_update_entry.m_recvg_entry == m_response_rec_entry) {
+      assert(m_pending_update_entry.m_valid);
+      simt_mask_t test = m_recvg_table[m_response_rec_entry].m_pending_mask &
+                         ~m_pending_update_entry.m_active_mask;
+      bool converged = !test.any();
+      bool spacefound = !m_simt_tables->is_pending_reconvergence() ||
+                        (m_simt_tables->st_space_available());
+      if (m_num_physical_entries == m_max_rec_size) {
+        bool spilled = spill_rec_entry();
+        if (spilled && (!converged || (converged && spacefound))) {
+          assert(m_num_physical_entries <= m_max_rec_size);
+          m_recvg_table[m_response_rec_entry].m_virtual = false;
+          m_recvg_table[m_response_rec_entry].m_transient = false;
+          m_recvg_table[m_response_rec_entry].m_pending_mask =
+              m_recvg_table[m_response_rec_entry].m_pending_mask &
+              ~m_pending_update_entry.m_active_mask;
+          m_recvg_table[m_response_rec_entry].m_branch_rec_cycle =
+              m_pending_update_entry.m_branch_rec_cycle;
+          m_pending_update_entry.m_valid = false;
+          m_num_transient_entries--;
+          m_num_physical_entries++;
 
- 					if (converged) {
- 						invalidate(m_response_rec_entry);
- 						simt_mask_t active_mask = get_active_mask(m_response_rec_entry);
- 						address_type pc = get_pc(m_response_rec_entry);
- 						address_type rpc = get_rpc(m_response_rec_entry);
- 						unsigned rpc_entry = get_rpc_entry(m_response_rec_entry);
- 						splits_table_entry_type type = get_type(m_response_rec_entry);
- 						m_simt_tables->insert_st_entry(pc, rpc, rpc_entry, active_mask, type, true);
- 					}
- 					m_response_rec_entry = -1;
- 				}
- 			} else {
- 				if ((!converged || (converged && spacefound))) {
- 					assert(m_num_physical_entries < m_max_rec_size);
- 					m_recvg_table[m_response_rec_entry].m_virtual = false;
- 					m_recvg_table[m_response_rec_entry].m_transient = false;
- 					m_recvg_table[m_response_rec_entry].m_pending_mask = m_recvg_table[m_response_rec_entry].m_pending_mask & ~ m_pending_update_entry.m_active_mask;
- 					m_recvg_table[m_response_rec_entry].m_branch_rec_cycle = m_pending_update_entry.m_branch_rec_cycle;
- 					m_pending_update_entry.m_valid = false;
- 					m_num_transient_entries--;
- 					m_num_physical_entries++;
- 					if (converged) {
- 						invalidate(m_response_rec_entry);
- 						simt_mask_t  active_mask =  get_active_mask(m_response_rec_entry);
- 						address_type pc = get_pc(m_response_rec_entry);
- 						address_type rpc = get_rpc(m_response_rec_entry);
- 						unsigned rpc_entry = get_rpc_entry(m_response_rec_entry);
- 						splits_table_entry_type type = get_type(m_response_rec_entry);
- 						m_simt_tables->insert_st_entry(pc, rpc, rpc_entry, active_mask, type, true);
- 					}
- 					m_response_rec_entry = -1;
- 				}
- 			}
- 		} else {
-      unsigned long long gpgpusim_total_cycles = GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_sim_cycle + GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle;
-      unsigned long long diff = (gpgpusim_total_cycles - m_recvg_table[m_response_rec_entry].m_branch_rec_cycle);
- 			if (diff > m_config->rec_time_out) {
-        const simt_mask_t & reconverged_mask = (~m_recvg_table[m_response_rec_entry].m_pending_mask) & (m_recvg_table[m_response_rec_entry].m_active_mask);
- 				GPGPU_Context()->the_gpgpusim->g_the_gpu->triggered_timeouts++;
+          if (converged) {
+            invalidate(m_response_rec_entry);
+            simt_mask_t active_mask = get_active_mask(m_response_rec_entry);
+            address_type pc = get_pc(m_response_rec_entry);
+            address_type rpc = get_rpc(m_response_rec_entry);
+            unsigned rpc_entry = get_rpc_entry(m_response_rec_entry);
+            splits_table_entry_type type = get_type(m_response_rec_entry);
+            m_simt_tables->insert_st_entry(pc, rpc, rpc_entry, active_mask,
+                                           type, true);
+          }
+          m_response_rec_entry = -1;
+        }
+      } else {
+        if ((!converged || (converged && spacefound))) {
+          assert(m_num_physical_entries < m_max_rec_size);
+          m_recvg_table[m_response_rec_entry].m_virtual = false;
+          m_recvg_table[m_response_rec_entry].m_transient = false;
+          m_recvg_table[m_response_rec_entry].m_pending_mask =
+              m_recvg_table[m_response_rec_entry].m_pending_mask &
+              ~m_pending_update_entry.m_active_mask;
+          m_recvg_table[m_response_rec_entry].m_branch_rec_cycle =
+              m_pending_update_entry.m_branch_rec_cycle;
+          m_pending_update_entry.m_valid = false;
+          m_num_transient_entries--;
+          m_num_physical_entries++;
+          if (converged) {
+            invalidate(m_response_rec_entry);
+            simt_mask_t active_mask = get_active_mask(m_response_rec_entry);
+            address_type pc = get_pc(m_response_rec_entry);
+            address_type rpc = get_rpc(m_response_rec_entry);
+            unsigned rpc_entry = get_rpc_entry(m_response_rec_entry);
+            splits_table_entry_type type = get_type(m_response_rec_entry);
+            m_simt_tables->insert_st_entry(pc, rpc, rpc_entry, active_mask,
+                                           type, true);
+          }
+          m_response_rec_entry = -1;
+        }
+      }
+    } else {
+      unsigned long long gpgpusim_total_cycles =
+          GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_sim_cycle +
+          GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle;
+      unsigned long long diff =
+          (gpgpusim_total_cycles -
+           m_recvg_table[m_response_rec_entry].m_branch_rec_cycle);
+      if (diff > m_config->rec_time_out) {
+        const simt_mask_t &reconverged_mask =
+            (~m_recvg_table[m_response_rec_entry].m_pending_mask) &
+            (m_recvg_table[m_response_rec_entry].m_active_mask);
+        GPGPU_Context()->the_gpgpusim->g_the_gpu->triggered_timeouts++;
 
- 				// insert an entry in the ST table with reconverged_mask
- 				address_type pc = m_recvg_table[m_response_rec_entry].m_pc;
- 				address_type rpc = m_recvg_table[m_response_rec_entry].m_recvg_pc;
- 				unsigned rpc_entry = m_recvg_table[m_response_rec_entry].m_recvg_entry;
- 				splits_table_entry_type type = m_recvg_table[m_response_rec_entry].m_type;
- 				m_simt_tables->insert_st_entry(pc, rpc, rpc_entry, reconverged_mask, type, true);
+        // insert an entry in the ST table with reconverged_mask
+        address_type pc = m_recvg_table[m_response_rec_entry].m_pc;
+        address_type rpc = m_recvg_table[m_response_rec_entry].m_recvg_pc;
+        unsigned rpc_entry = m_recvg_table[m_response_rec_entry].m_recvg_entry;
+        splits_table_entry_type type =
+            m_recvg_table[m_response_rec_entry].m_type;
+        m_simt_tables->insert_st_entry(pc, rpc, rpc_entry, reconverged_mask,
+                                       type, true);
 
- 				// update the reconvergence mask of this entry
- 				update_masks_upon_time_out(m_response_rec_entry, reconverged_mask);
- 				set_rec_cycle(m_response_rec_entry, gpgpusim_total_cycles);
- 			}
- 		}
- 	}
+        // update the reconvergence mask of this entry
+        update_masks_upon_time_out(m_response_rec_entry, reconverged_mask);
+        set_rec_cycle(m_response_rec_entry, gpgpusim_total_cycles);
+      }
+    }
+  }
 }
 
-const simt_mask_t & simt_reconvergence_table::get_active_mask() {
+const simt_mask_t &simt_reconvergence_table::get_active_mask() {
   assert(m_recvg_table.find(m_active_reconvergence) != m_recvg_table.end());
   return m_recvg_table[m_active_reconvergence].m_active_mask;
 }
 
-const simt_mask_t & simt_reconvergence_table::get_active_mask(unsigned num) {
+const simt_mask_t &simt_reconvergence_table::get_active_mask(unsigned num) {
   assert(m_recvg_table.find(num) != m_recvg_table.end());
   return m_recvg_table[num].m_active_mask;
 }
 
-simt_reconvergence_table_entry  simt_reconvergence_table::get_recvg_entry(unsigned num) {
- 	return m_recvg_table[num];
+simt_reconvergence_table_entry simt_reconvergence_table::get_recvg_entry(
+    unsigned num) {
+  return m_recvg_table[num];
 }
 
-void simt_reconvergence_table::get_recvg_entry_info(unsigned num, unsigned *pc, unsigned *rpc) {
-  assert((m_recvg_table.find(num) != m_recvg_table.end()) && m_recvg_table[0].m_valid);
+void simt_reconvergence_table::get_recvg_entry_info(unsigned num, unsigned *pc,
+                                                    unsigned *rpc) {
+  assert((m_recvg_table.find(num) != m_recvg_table.end()) &&
+         m_recvg_table[0].m_valid);
   *pc = m_recvg_table[num].m_pc;
   *rpc = m_recvg_table[num].m_recvg_pc;
 }
 
-void simt_reconvergence_table::get_active_recvg_info(unsigned *pc, unsigned *rpc) {
-  assert((m_recvg_table.find(m_active_reconvergence) != m_recvg_table.end()) && m_recvg_table[0].m_valid);
+void simt_reconvergence_table::get_active_recvg_info(unsigned *pc,
+                                                     unsigned *rpc) {
+  assert((m_recvg_table.find(m_active_reconvergence) != m_recvg_table.end()) &&
+         m_recvg_table[0].m_valid);
   *pc = m_recvg_table[m_active_reconvergence].m_pc;
   *rpc = m_recvg_table[m_active_reconvergence].m_recvg_pc;
 }
@@ -2344,7 +2488,6 @@ unsigned simt_reconvergence_table::get_rpc(unsigned num) {
   return m_recvg_table[num].m_recvg_pc;
 }
 
-
 unsigned simt_reconvergence_table::get_pc() {
   assert(m_recvg_table.find(m_active_reconvergence) != m_recvg_table.end());
   return m_recvg_table[m_active_reconvergence].m_pc;
@@ -2356,201 +2499,212 @@ unsigned simt_reconvergence_table::get_pc(unsigned num) {
 }
 
 void simt_reconvergence_table::invalidate() {
-  assert((m_recvg_table.find(m_active_reconvergence) != m_recvg_table.end()) && m_recvg_table[m_active_reconvergence].m_valid);
+  assert((m_recvg_table.find(m_active_reconvergence) != m_recvg_table.end()) &&
+         m_recvg_table[m_active_reconvergence].m_valid);
   m_recvg_table[m_active_reconvergence].m_valid = false;
   m_invalid_entries.push(m_active_reconvergence);
   m_num_entries--;
   m_num_physical_entries--;
   assert(m_num_physical_entries != (unsigned)-1);
-  assert((m_num_entries+m_invalid_entries.size()) == MAX_VIRTUAL_RT_ENTRIES);
+  assert((m_num_entries + m_invalid_entries.size()) == MAX_VIRTUAL_RT_ENTRIES);
 }
 
 void simt_reconvergence_table::invalidate(unsigned num) {
-  assert((m_recvg_table.find(num) != m_recvg_table.end()) && m_recvg_table[num].m_valid);
+  assert((m_recvg_table.find(num) != m_recvg_table.end()) &&
+         m_recvg_table[num].m_valid);
   m_recvg_table[num].m_valid = false;
   m_invalid_entries.push(num);
   m_num_entries--;
   m_num_physical_entries--;
   assert(m_num_physical_entries != (unsigned)-1);
-  assert((m_num_entries+m_invalid_entries.size()) == MAX_VIRTUAL_RT_ENTRIES);
+  assert((m_num_entries + m_invalid_entries.size()) == MAX_VIRTUAL_RT_ENTRIES);
 }
 
-void simt_reconvergence_table::set_rec_cycle(unsigned rec_entry,unsigned long long time) {
+void simt_reconvergence_table::set_rec_cycle(unsigned rec_entry,
+                                             unsigned long long time) {
   m_recvg_table[rec_entry].m_branch_rec_cycle = time;
 }
 
-void simt_reconvergence_table::print (FILE *fout) {
- 	printf("max of physical entries=%u\n", m_max_rec_size);
- 	printf("num of physical entries=%u\n", m_num_physical_entries);
- 	printf("Spill Entry %u\n", address_to_entry(m_spill_rec_entry));
- 	printf("fill Entry %u\n", address_to_entry(m_fill_rec_entry));
- 	printf("Pending Update Entry valid: %u\n", m_pending_update_entry.m_valid);
- 	printf("Response Entry: %u\n", m_response_rec_entry);
- 	for (unsigned k=0; k <MAX_VIRTUAL_RT_ENTRIES; k++) {
+void simt_reconvergence_table::print(FILE *fout) {
+  printf("max of physical entries=%u\n", m_max_rec_size);
+  printf("num of physical entries=%u\n", m_num_physical_entries);
+  printf("Spill Entry %u\n", address_to_entry(m_spill_rec_entry));
+  printf("fill Entry %u\n", address_to_entry(m_fill_rec_entry));
+  printf("Pending Update Entry valid: %u\n", m_pending_update_entry.m_valid);
+  printf("Response Entry: %u\n", m_response_rec_entry);
+  for (unsigned k = 0; k < MAX_VIRTUAL_RT_ENTRIES; k++) {
     simt_reconvergence_table_entry recvg_table_entry = m_recvg_table[k];
     if (!recvg_table_entry.m_valid) continue;
     fprintf(fout, "        %1u ", k);
-    for (unsigned j=0; j<m_warp_size; j++)
-      fprintf(fout, "%c", (recvg_table_entry.m_active_mask.test(j)?'1':'0') );
-    fprintf(fout,"  ");
-    for (unsigned j=0; j<m_warp_size; j++)
-      fprintf(fout, "%c", (recvg_table_entry.m_pending_mask.test(j)?'1':'0') );
-    fprintf(fout, " pc: 0x%03x", recvg_table_entry.m_pc );
+    for (unsigned j = 0; j < m_warp_size; j++)
+      fprintf(fout, "%c",
+              (recvg_table_entry.m_active_mask.test(j) ? '1' : '0'));
+    fprintf(fout, "  ");
+    for (unsigned j = 0; j < m_warp_size; j++)
+      fprintf(fout, "%c",
+              (recvg_table_entry.m_pending_mask.test(j) ? '1' : '0'));
+    fprintf(fout, " pc: 0x%03x", recvg_table_entry.m_pc);
     if (recvg_table_entry.m_recvg_pc == (unsigned)-1) {
-      fprintf(fout," rp: ----       %s", (recvg_table_entry.m_valid==true?" V ":" N "));
+      fprintf(fout, " rp: ----       %s",
+              (recvg_table_entry.m_valid == true ? " V " : " N "));
     } else {
-      fprintf(fout," rp: 0x%03x     %s", recvg_table_entry.m_recvg_pc, (recvg_table_entry.m_valid==true?" V ":" N "));
+      fprintf(fout, " rp: 0x%03x     %s", recvg_table_entry.m_recvg_pc,
+              (recvg_table_entry.m_valid == true ? " V " : " N "));
     }
     fprintf(fout, " %d ", recvg_table_entry.m_type);
-    GPGPU_Context()->func_sim->ptx_print_insn( recvg_table_entry.m_pc, fout );
+    GPGPU_Context()->func_sim->ptx_print_insn(recvg_table_entry.m_pc, fout);
     if (recvg_table_entry.m_recvg_entry == (unsigned)-1) {
-      fprintf(fout," rp: ----       ");
+      fprintf(fout, " rp: ----       ");
     } else {
-      fprintf(fout," rp: 0x%03x     ", recvg_table_entry.m_recvg_entry);
+      fprintf(fout, " rp: 0x%03x     ", recvg_table_entry.m_recvg_entry);
     }
-    fprintf(fout,"\n");
+    fprintf(fout, "\n");
   }
 }
 
-simt_tables::simt_tables( unsigned wid,  unsigned warpSize, const shader_core_config *config, const struct memory_config *mem_config) {
+simt_tables::simt_tables(unsigned wid, unsigned warpSize,
+                         const shader_core_config *config,
+                         const struct memory_config *mem_config) {
   m_warp_id = wid;
   m_warp_size = warpSize;
- 	m_simt_splits_table = new simt_splits_table(wid, warpSize, config, mem_config, this);
- 	m_simt_recvg_table = new simt_reconvergence_table(wid, warpSize, config, mem_config, this);
- 	m_config = config;
- 	m_mem_config = mem_config;
+  m_simt_splits_table =
+      new simt_splits_table(wid, warpSize, config, mem_config, this);
+  m_simt_recvg_table =
+      new simt_reconvergence_table(wid, warpSize, config, mem_config, this);
+  m_config = config;
+  m_mem_config = mem_config;
 }
 
 void simt_tables::reset() {
- 	m_simt_splits_table->reset();
- 	m_simt_recvg_table->reset();
- 	m_simt_splits_table->release_blocked();
+  m_simt_splits_table->reset();
+  m_simt_recvg_table->reset();
+  m_simt_splits_table->release_blocked();
 }
 
-void simt_tables::launch( address_type start_pc, const simt_mask_t &active_mask ){
- 	m_simt_splits_table->launch(start_pc, active_mask);
+void simt_tables::launch(address_type start_pc,
+                         const simt_mask_t &active_mask) {
+  m_simt_splits_table->launch(start_pc, active_mask);
 }
 
 unsigned simt_splits_table::check_simt_splits_table() {
- 	unsigned count = 0;
- 	for (unsigned i=0; i<MAX_VIRTUAL_ST_ENTRIES;i++) {
- 		if (m_splits_table[i].m_valid) {
-      for (unsigned j=0; j<m_warp_size; j++)
+  unsigned count = 0;
+  for (unsigned i = 0; i < MAX_VIRTUAL_ST_ENTRIES; i++) {
+    if (m_splits_table[i].m_valid) {
+      for (unsigned j = 0; j < m_warp_size; j++)
         if (m_splits_table[i].m_active_mask.test(j)) {
           count++;
         }
- 		}
- 	}
- 	return count;
+    }
+  }
+  return count;
 }
 
 unsigned simt_reconvergence_table::check_simt_reconvergence_table() {
- 	unsigned count = 0;
- 	for (unsigned i=0; i<MAX_VIRTUAL_RT_ENTRIES;i++) {
- 		if (m_recvg_table[i].m_valid) {
-      for (unsigned j=0; j<m_warp_size; j++)
-        if (!m_recvg_table[i].m_pending_mask.test(j) && m_recvg_table[i].m_active_mask.test(j)) {
+  unsigned count = 0;
+  for (unsigned i = 0; i < MAX_VIRTUAL_RT_ENTRIES; i++) {
+    if (m_recvg_table[i].m_valid) {
+      for (unsigned j = 0; j < m_warp_size; j++)
+        if (!m_recvg_table[i].m_pending_mask.test(j) &&
+            m_recvg_table[i].m_active_mask.test(j)) {
           count++;
         }
- 		}
- 	}
- 	return count;
+    }
+  }
+  return count;
 }
 
 void simt_tables::check_time_out() {
-  unsigned long long gpgpusim_total_cycles = GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_sim_cycle + GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle;
- 	for (unsigned k=0; k < m_config->num_rec_entries; k++) {
-    simt_reconvergence_table_entry recvg_table_entry = m_simt_recvg_table->get_recvg_entry(k);
-    if(!recvg_table_entry.m_valid) continue;
-    const simt_mask_t & reconverged_mask = (~recvg_table_entry.m_pending_mask) & (recvg_table_entry.m_active_mask);
+  unsigned long long gpgpusim_total_cycles =
+      GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_sim_cycle +
+      GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle;
+  for (unsigned k = 0; k < m_config->num_rec_entries; k++) {
+    simt_reconvergence_table_entry recvg_table_entry =
+        m_simt_recvg_table->get_recvg_entry(k);
+    if (!recvg_table_entry.m_valid) continue;
+    const simt_mask_t &reconverged_mask =
+        (~recvg_table_entry.m_pending_mask) & (recvg_table_entry.m_active_mask);
 
-    unsigned long long diff = (gpgpusim_total_cycles - recvg_table_entry.m_branch_rec_cycle);
- 		if (diff>m_config->rec_time_out) {
- 			if (recvg_table_entry.m_virtual) {
- 				m_simt_recvg_table->fill_rec_entry(k);
- 			} else {
- 				if (reconverged_mask.any()) {
- 					GPGPU_Context()->the_gpgpusim->g_the_gpu->triggered_timeouts++;
+    unsigned long long diff =
+        (gpgpusim_total_cycles - recvg_table_entry.m_branch_rec_cycle);
+    if (diff > m_config->rec_time_out) {
+      if (recvg_table_entry.m_virtual) {
+        m_simt_recvg_table->fill_rec_entry(k);
+      } else {
+        if (reconverged_mask.any()) {
+          GPGPU_Context()->the_gpgpusim->g_the_gpu->triggered_timeouts++;
 
- 					// insert an entry in the ST table with reconverged_mask
- 					address_type pc = recvg_table_entry.m_pc;
- 					address_type rpc = recvg_table_entry.m_recvg_pc;
- 					unsigned rpc_entry = recvg_table_entry.m_recvg_entry;
- 					splits_table_entry_type type = recvg_table_entry.m_type;
- 					m_simt_splits_table->insert_new_entry(pc, rpc, rpc_entry, reconverged_mask, type, true);
+          // insert an entry in the ST table with reconverged_mask
+          address_type pc = recvg_table_entry.m_pc;
+          address_type rpc = recvg_table_entry.m_recvg_pc;
+          unsigned rpc_entry = recvg_table_entry.m_recvg_entry;
+          splits_table_entry_type type = recvg_table_entry.m_type;
+          m_simt_splits_table->insert_new_entry(pc, rpc, rpc_entry,
+                                                reconverged_mask, type, true);
 
- 					// update the reconvergence mask of this entry
- 					m_simt_recvg_table->update_masks_upon_time_out(k, reconverged_mask);
- 					m_simt_recvg_table->set_rec_cycle(k, gpgpusim_total_cycles);
- 				}
- 			}
+          // update the reconvergence mask of this entry
+          m_simt_recvg_table->update_masks_upon_time_out(k, reconverged_mask);
+          m_simt_recvg_table->set_rec_cycle(k, gpgpusim_total_cycles);
+        }
+      }
     }
   }
 }
 
 bool simt_tables::split_reaches_barrier(address_type pc) {
- 	return m_simt_splits_table->split_reaches_barrier(pc);
+  return m_simt_splits_table->split_reaches_barrier(pc);
 }
 
-void simt_tables::release_barrier() {
- 	m_simt_splits_table->release_blocked();
-}
+void simt_tables::release_barrier() { m_simt_splits_table->release_blocked(); }
 
 bool simt_tables::is_virtualized() {
- 	return m_simt_splits_table->is_virtualized();
+  return m_simt_splits_table->is_virtualized();
 }
 
 bool simt_tables::is_pending_reconvergence() {
- 	return m_simt_splits_table->is_pending_reconvergence() && m_simt_recvg_table->is_pending_update();
+  return m_simt_splits_table->is_pending_reconvergence() &&
+         m_simt_recvg_table->is_pending_update();
 }
 
 bool simt_tables::st_space_available() {
- 	return m_simt_splits_table->st_space_available();
+  return m_simt_splits_table->st_space_available();
 }
 
+bool simt_tables::blocked() { return m_simt_splits_table->blocked(); }
 
-bool simt_tables::blocked() {
- 	return m_simt_splits_table->blocked();
-}
+bool simt_tables::is_blocked() { return m_simt_splits_table->is_blocked(); }
 
-bool simt_tables::is_blocked() {
- 	return m_simt_splits_table->is_blocked();
-}
-
-
-bool simt_tables::valid() {
- 	return m_simt_splits_table->valid();
-}
+bool simt_tables::valid() { return m_simt_splits_table->valid(); }
 
 bool simt_tables::push_to_rt_response_fifo(unsigned entry) {
- 	return m_simt_recvg_table->push_to_rt_response_fifo(entry);
+  return m_simt_recvg_table->push_to_rt_response_fifo(entry);
 }
 
 bool simt_tables::push_to_st_response_fifo(unsigned entry) {
- 	return m_simt_splits_table->push_to_st_response_fifo(entry);
+  return m_simt_splits_table->push_to_st_response_fifo(entry);
 }
 
-void simt_tables::set_shader(shader_core_ctx* shader) {
- 	m_shader = shader;
- 	m_simt_splits_table->set_shader(shader);
- 	m_simt_recvg_table->set_shader(shader);
+void simt_tables::set_shader(shader_core_ctx *shader) {
+  m_shader = shader;
+  m_simt_splits_table->set_shader(shader);
+  m_simt_recvg_table->set_shader(shader);
 }
 
-void simt_tables::push_back() {
- 	m_simt_splits_table->push_back();
+void simt_tables::push_back() { m_simt_splits_table->push_back(); }
+
+void simt_tables::check_simt_tables() {
+  unsigned running = m_simt_splits_table->check_simt_splits_table();
+  unsigned converged = m_simt_recvg_table->check_simt_reconvergence_table();
+  if (running + converged > 32) {
+    printf("running=%u\n", running);
+    printf("converged=%u\n", converged);
+    abort();
+  }
 }
 
-void simt_tables::check_simt_tables(){
- 	unsigned running = m_simt_splits_table->check_simt_splits_table();
- 	unsigned converged = m_simt_recvg_table->check_simt_reconvergence_table();
- 	if (running + converged > 32) {
- 		printf("running=%u\n", running);
- 		printf("converged=%u\n", converged);
- 		abort();
- 	}
-}
-
-void simt_tables::update( simt_mask_t &thread_done, addr_vector_t &next_pc, address_type recvg_pc, op_type next_inst_op,unsigned next_inst_size, address_type next_inst_pc, bool predicated) {
+void simt_tables::update(simt_mask_t &thread_done, addr_vector_t &next_pc,
+                         address_type recvg_pc, op_type next_inst_op,
+                         unsigned next_inst_size, address_type next_inst_pc,
+                         bool predicated) {
   check_simt_tables();
 
   simt_mask_t top_active_mask = m_simt_splits_table->get_active_mask();
@@ -2572,7 +2726,8 @@ void simt_tables::update( simt_mask_t &thread_done, addr_vector_t &next_pc, addr
   bool invalidate = false;
 
   while (top_active_mask.any()) {
-    // extract a group of threads with the same next PC among the active threads in the warp
+    // extract a group of threads with the same next PC among the active threads
+    // in the warp
     address_type tmp_next_pc = null_pc;
     simt_mask_t tmp_active_mask;
     for (int i = m_warp_size - 1; i >= 0; i--) {
@@ -2612,24 +2767,30 @@ void simt_tables::update( simt_mask_t &thread_done, addr_vector_t &next_pc, addr
       tmp_active_mask = divergent_paths[tmp_next_pc];
       divergent_paths.erase(tmp_next_pc);
     } else {
-      std::map<address_type,simt_mask_t>:: iterator it = divergent_paths.begin();
+      std::map<address_type, simt_mask_t>::iterator it =
+          divergent_paths.begin();
       tmp_next_pc = it->first;
       tmp_active_mask = divergent_paths[tmp_next_pc];
       divergent_paths.erase(tmp_next_pc);
     }
 
     // HANDLE THE SPECIAL CASES FIRST
-    unsigned long long gpgpusim_total_cycles = GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_sim_cycle + GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle;
-    
+    unsigned long long gpgpusim_total_cycles =
+        GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_sim_cycle +
+        GPGPU_Context()->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle;
+
     if (!predicated) {
       if (next_inst_op == CALL_OPS) {
-        // Since call is not a divergent instruction, all threads should have executed a call instruction
+        // Since call is not a divergent instruction, all threads should have
+        // executed a call instruction
         assert(num_divergent_paths == 1);
 
         // Move top entry to the reconvergence table
-        new_recvg_entry = m_simt_recvg_table->insert_new_entry(top_pc, top_recvg_pc, top_recvg_entry, top_active_mask_keep, top_type);
+        new_recvg_entry = m_simt_recvg_table->insert_new_entry(
+            top_pc, top_recvg_pc, top_recvg_entry, top_active_mask_keep,
+            top_type);
         assert(new_recvg_entry != (unsigned)-1);
-        
+
         m_simt_splits_table->invalidate();
         m_simt_splits_table->update_active_entry();
 
@@ -2642,19 +2803,23 @@ void simt_tables::update( simt_mask_t &thread_done, addr_vector_t &next_pc, addr
         new_st_entry.m_type = SPLITS_TABLE_TYPE_CALL;
         m_simt_splits_table->insert_new_entry(new_st_entry);
         return;
-      } else if (next_inst_op == RET_OPS && top_type == SPLITS_TABLE_TYPE_CALL) {
+      } else if (next_inst_op == RET_OPS &&
+                 top_type == SPLITS_TABLE_TYPE_CALL) {
         // pop the CALL Entry
         assert(num_divergent_paths == 1);
         top_recvg_entry = m_simt_splits_table->get_rpc_entry();
         m_simt_splits_table->invalidate();
 
         // Move reconvergence entry back to splits table
-        simt_mask_t  active_mask =  m_simt_recvg_table->get_active_mask(new_recvg_entry);
+        simt_mask_t active_mask =
+            m_simt_recvg_table->get_active_mask(new_recvg_entry);
         address_type pc = m_simt_recvg_table->get_pc(new_recvg_entry);
         address_type rpc = m_simt_recvg_table->get_rpc(new_recvg_entry);
         unsigned rpc_entry = m_simt_recvg_table->get_rpc_entry(top_recvg_entry);
-        splits_table_entry_type type = m_simt_recvg_table->get_type(new_recvg_entry);
-        m_simt_splits_table->insert_new_entry(pc, rpc, rpc_entry, active_mask, type, true, true);
+        splits_table_entry_type type =
+            m_simt_recvg_table->get_type(new_recvg_entry);
+        m_simt_splits_table->insert_new_entry(pc, rpc, rpc_entry, active_mask,
+                                              type, true, true);
 
         // Update top entry
         m_simt_splits_table->update_active_entry();
@@ -2662,24 +2827,30 @@ void simt_tables::update( simt_mask_t &thread_done, addr_vector_t &next_pc, addr
 
         // Invalidate reconvergence entry
         bool suspended = false;
-        m_simt_recvg_table->update_pending_mask(top_recvg_entry, pc, active_mask, suspended);
+        m_simt_recvg_table->update_pending_mask(top_recvg_entry, pc,
+                                                active_mask, suspended);
         top_recvg_entry = m_simt_splits_table->get_rpc_entry();
 
         // Do not return in case there is further reconvergence
       }
     }
 
- 		if (tmp_next_pc == top_recvg_pc) {
-      //Direct reconvergence at top_recvg_pc: update Pending Mask in The RT table
- 			bool suspended = false;
- 			bool reconverged = m_simt_recvg_table->update_pending_mask(top_recvg_entry, top_recvg_pc, tmp_active_mask, suspended);
- 			if (reconverged && !suspended) {
-        simt_mask_t  active_mask =  m_simt_recvg_table->get_active_mask(top_recvg_entry);
+    if (tmp_next_pc == top_recvg_pc) {
+      // Direct reconvergence at top_recvg_pc: update Pending Mask in The RT
+      // table
+      bool suspended = false;
+      bool reconverged = m_simt_recvg_table->update_pending_mask(
+          top_recvg_entry, top_recvg_pc, tmp_active_mask, suspended);
+      if (reconverged && !suspended) {
+        simt_mask_t active_mask =
+            m_simt_recvg_table->get_active_mask(top_recvg_entry);
         address_type pc = m_simt_recvg_table->get_pc(top_recvg_entry);
         address_type rpc = m_simt_recvg_table->get_rpc(top_recvg_entry);
         unsigned rpc_entry = m_simt_recvg_table->get_rpc_entry(top_recvg_entry);
-        splits_table_entry_type type = m_simt_recvg_table->get_type(top_recvg_entry);
-        m_simt_splits_table->insert_new_entry(pc, rpc, rpc_entry, active_mask, type, true);
+        splits_table_entry_type type =
+            m_simt_recvg_table->get_type(top_recvg_entry);
+        m_simt_splits_table->insert_new_entry(pc, rpc, rpc_entry, active_mask,
+                                              type, true);
       }
       if (num_divergent_paths == 1) {
         if (!invalidate) {
@@ -2690,36 +2861,41 @@ void simt_tables::update( simt_mask_t &thread_done, addr_vector_t &next_pc, addr
       continue;
     }
 
-
-
     // this new entry is not converging
     // if this entry does not include thread from the warp, divergence occurs
     if ((num_divergent_paths > 1) && !warp_diverged) {
       warp_diverged = true;
-      // modify the existing top entry into a reconvergence entry in the RT table
+      // modify the existing top entry into a reconvergence entry in the RT
+      // table
       new_recvg_pc = recvg_pc;
       if (new_recvg_pc != top_recvg_pc) {
         // add a new reconvergence entry in the RT table
         // assert(top_recvg_pc > new_recvg_pc);
-        new_recvg_entry = m_simt_recvg_table->insert_new_entry(new_recvg_pc, top_recvg_pc, top_recvg_entry, top_active_mask_keep, top_type);
+        new_recvg_entry = m_simt_recvg_table->insert_new_entry(
+            new_recvg_pc, top_recvg_pc, top_recvg_entry, top_active_mask_keep,
+            top_type);
       }
     }
 
     // discard the new entry if its PC matches with reconvergence PC
     if (warp_diverged && tmp_next_pc == new_recvg_pc) {
-      //Direct reconvergence at new_recvg_pc: update Pending Mask in The RT table
+      // Direct reconvergence at new_recvg_pc: update Pending Mask in The RT
+      // table
       bool suspended = false;
-      bool reconverged = m_simt_recvg_table->update_pending_mask(new_recvg_entry, new_recvg_pc, tmp_active_mask, suspended);
+      bool reconverged = m_simt_recvg_table->update_pending_mask(
+          new_recvg_entry, new_recvg_pc, tmp_active_mask, suspended);
       if (reconverged && !suspended) {
-        simt_mask_t active_mask = m_simt_recvg_table->get_active_mask(new_recvg_entry);
+        simt_mask_t active_mask =
+            m_simt_recvg_table->get_active_mask(new_recvg_entry);
         address_type pc = m_simt_recvg_table->get_pc(new_recvg_entry);
         address_type rpc = m_simt_recvg_table->get_rpc(new_recvg_entry);
         unsigned rpc_entry = m_simt_recvg_table->get_rpc_entry(new_recvg_entry);
-        splits_table_entry_type type = m_simt_recvg_table->get_type(new_recvg_entry);
-        m_simt_splits_table->insert_new_entry(pc, rpc, rpc_entry, active_mask, type);
+        splits_table_entry_type type =
+            m_simt_recvg_table->get_type(new_recvg_entry);
+        m_simt_splits_table->insert_new_entry(pc, rpc, rpc_entry, active_mask,
+                                              type);
       }
       continue;
-
     }
 
     // update the ST table
@@ -2728,11 +2904,14 @@ void simt_tables::update( simt_mask_t &thread_done, addr_vector_t &next_pc, addr
         m_simt_splits_table->invalidate();
         invalidate = true;
       }
-      m_simt_splits_table->insert_new_entry(tmp_next_pc, new_recvg_pc, new_recvg_entry, tmp_active_mask, top_type);
+      m_simt_splits_table->insert_new_entry(tmp_next_pc, new_recvg_pc,
+                                            new_recvg_entry, tmp_active_mask,
+                                            top_type);
     } else {
       m_simt_splits_table->update_pc(tmp_next_pc);
       if (tmp_next_pc != not_taken_pc) {
-        m_simt_splits_table->push_back(); //even for .uni branches fifo would switch execution to another split
+        m_simt_splits_table->push_back();  // even for .uni branches fifo would
+                                           // switch execution to another split
       }
     }
   }
@@ -2740,7 +2919,6 @@ void simt_tables::update( simt_mask_t &thread_done, addr_vector_t &next_pc, addr
   if (invalidate) {
     m_simt_splits_table->update_active_entry();
   }
-
 
   check_simt_tables();
 
@@ -2754,23 +2932,21 @@ void simt_tables::update( simt_mask_t &thread_done, addr_vector_t &next_pc, addr
 }
 
 const simt_mask_t &simt_tables::get_active_mask() {
- 	return m_simt_splits_table->get_active_mask();
-}
- 
-void simt_tables::get_pdom_active_split_info(unsigned *pc, unsigned *rpc) {
- 	m_simt_splits_table->get_pdom_active_split_info(pc, rpc);
+  return m_simt_splits_table->get_active_mask();
 }
 
-unsigned simt_tables::get_rp() {
- 	return m_simt_splits_table->get_rpc();
+void simt_tables::get_pdom_active_split_info(unsigned *pc, unsigned *rpc) {
+  m_simt_splits_table->get_pdom_active_split_info(pc, rpc);
 }
- 
-void simt_tables::print(FILE*fp) {
- 	printf("w%02d\n", m_warp_id);
- 	printf("Splits Table:\n");
- 	m_simt_splits_table->print(fp);
- 	printf("Reconvergence Table:\n");
- 	m_simt_recvg_table->print(fp);
+
+unsigned simt_tables::get_rp() { return m_simt_splits_table->get_rpc(); }
+
+void simt_tables::print(FILE *fp) {
+  printf("w%02d\n", m_warp_id);
+  printf("Splits Table:\n");
+  m_simt_splits_table->print(fp);
+  printf("Reconvergence Table:\n");
+  m_simt_recvg_table->print(fp);
 }
 
 simt_stack::simt_stack(unsigned wid, unsigned warpSize, class gpgpu_sim *gpu) {
@@ -2891,7 +3067,8 @@ void simt_stack::print_checkpoint(FILE *fout) const {
 
 void simt_stack::update(simt_mask_t &thread_done, addr_vector_t &next_pc,
                         address_type recvg_pc, op_type next_inst_op,
-                        unsigned next_inst_size, address_type next_inst_pc, bool predicated) {
+                        unsigned next_inst_size, address_type next_inst_pc,
+                        bool predicated) {
   assert(m_stack.size() > 0);
 
   assert(next_pc.size() == m_warp_size);
@@ -2911,7 +3088,8 @@ void simt_stack::update(simt_mask_t &thread_done, addr_vector_t &next_pc,
 
   std::map<address_type, simt_mask_t> divergent_paths;
   while (top_active_mask.any()) {
-    // extract a group of threads with the same next PC among the active threads in the warp
+    // extract a group of threads with the same next PC among the active threads
+    // in the warp
     address_type tmp_next_pc = null_pc;
     simt_mask_t tmp_active_mask;
     for (int i = m_warp_size - 1; i >= 0; i--) {
@@ -2961,7 +3139,8 @@ void simt_stack::update(simt_mask_t &thread_done, addr_vector_t &next_pc,
     // Predicated CALLs are different
     if (!predicated) {
       if (next_inst_op == CALL_OPS) {
-        // Since call is not a divergent instruction, all threads should have executed a call instruction
+        // Since call is not a divergent instruction, all threads should have
+        // executed a call instruction
         assert(num_divergent_paths == 1);
 
         simt_stack_entry new_stack_entry;
@@ -2978,8 +3157,9 @@ void simt_stack::update(simt_mask_t &thread_done, addr_vector_t &next_pc,
         m_stack.pop_back();
 
         assert(m_stack.size() > 0);
-        m_stack.back().m_pc = tmp_next_pc;  // set the PC of the stack top entry
-                                            // to return PC from  the call stack;
+        m_stack.back().m_pc =
+            tmp_next_pc;  // set the PC of the stack top entry
+                          // to return PC from  the call stack;
         // Check if the New top of the stack is reconverging
         if (tmp_next_pc == m_stack.back().m_recvg_pc &&
             m_stack.back().m_type != STACK_ENTRY_TYPE_CALL) {
@@ -3054,7 +3234,8 @@ bool core_t::ptx_thread_done(unsigned hw_thread_id) const {
 }
 
 // void core_t::updateSIMTStack(unsigned warpId, warp_inst_t *inst) {
-void core_t::updateSIMTDivergenceStructures(unsigned warpId, warp_inst_t * inst) {
+void core_t::updateSIMTDivergenceStructures(unsigned warpId,
+                                            warp_inst_t *inst) {
   simt_mask_t thread_done;
   addr_vector_t next_pc;
   unsigned wtid = warpId * m_warp_size;
@@ -3070,10 +3251,14 @@ void core_t::updateSIMTDivergenceStructures(unsigned warpId, warp_inst_t * inst)
   }
 
   if (m_gpu->simd_model() == POST_DOMINATOR) {
-    m_simt_stack[warpId]->update(thread_done, next_pc, inst->reconvergence_pc, inst->op,inst->isize, inst->pc, inst->has_pred());
+    m_simt_stack[warpId]->update(thread_done, next_pc, inst->reconvergence_pc,
+                                 inst->op, inst->isize, inst->pc,
+                                 inst->has_pred());
   } else {
     AWARE_DPRINTF("Updating SIMT tables for Warp %d\n", warpId);
-    m_simt_tables[warpId]->update(thread_done, next_pc, inst->reconvergence_pc, inst->op, inst->isize, inst->pc, inst->has_pred());
+    m_simt_tables[warpId]->update(thread_done, next_pc, inst->reconvergence_pc,
+                                  inst->op, inst->isize, inst->pc,
+                                  inst->has_pred());
   }
 }
 
@@ -3090,7 +3275,7 @@ unsigned core_t::getSTSize(unsigned wid) {
 }
 
 unsigned core_t::getRTSize(unsigned wid) {
-	return m_simt_tables[wid]->getRTsize();
+  return m_simt_tables[wid]->getRTsize();
 }
 
 //! Get the warp to be executed using the data taken form the SIMT stack
@@ -3152,25 +3337,28 @@ void core_t::deleteSIMTDivergenceStructures() {
 //   m_warp_count = warp_count;
 // }
 
-void core_t::initilizeSIMTDivergenceStructures(unsigned warp_count, unsigned warp_size) {
+void core_t::initilizeSIMTDivergenceStructures(unsigned warp_count,
+                                               unsigned warp_size) {
   if (m_gpu->simd_model() == POST_DOMINATOR) {
-    m_simt_stack = new simt_stack*[warp_count];
+    m_simt_stack = new simt_stack *[warp_count];
     for (unsigned i = 0; i < warp_count; ++i) {
       m_simt_stack[i] = new simt_stack(i, warp_size, m_gpu);
     }
     m_warp_size = warp_size;
     m_warp_count = warp_count;
   } else {
-    m_simt_tables = new simt_tables*[warp_count];
+    m_simt_tables = new simt_tables *[warp_count];
     for (unsigned i = 0; i < warp_count; ++i) {
-      m_simt_tables[i] = new simt_tables(i, warp_size, m_gpu->get_shader_config(), m_gpu->getMemoryConfig());
+      m_simt_tables[i] = new simt_tables(
+          i, warp_size, m_gpu->get_shader_config(), m_gpu->getMemoryConfig());
     }
     m_warp_size = warp_size;
     m_warp_count = warp_count;
   }
 }
 
-void core_t::get_pdom_stack_top_info(unsigned warpId, unsigned *pc, unsigned *rpc) const {
+void core_t::get_pdom_stack_top_info(unsigned warpId, unsigned *pc,
+                                     unsigned *rpc) const {
   // m_simt_stack[warpId]->get_pdom_stack_top_info(pc, rpc);
   if (m_gpu->simd_model() == POST_DOMINATOR) {
     m_simt_stack[warpId]->get_pdom_stack_top_info(pc, rpc);

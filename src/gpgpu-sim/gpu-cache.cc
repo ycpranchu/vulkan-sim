@@ -526,7 +526,7 @@ bool mshr_table::full(new_addr_type block_addr) const {
 
 /// Add or merge this access
 void mshr_table::add(new_addr_type block_addr, mem_fetch *mf) {
-  assert(mf != NULL); //if (mf == NULL) return; TIMING_TODO: WHY bug?
+  assert(mf != NULL);  // if (mf == NULL) return; TIMING_TODO: WHY bug?
   m_data[block_addr].m_list.push_back(mf);
   assert(m_data.size() <= m_num_entries);
   assert(m_data[block_addr].m_list.size() <= m_max_merged);
@@ -600,7 +600,7 @@ void mshr_table::display(FILE *fp) const {
   }
 }
 
-std::list<mem_fetch*> mshr_table::get_mf_list(new_addr_type block_addr) {
+std::list<mem_fetch *> mshr_table::get_mf_list(new_addr_type block_addr) {
   return m_data[block_addr].m_list;
 }
 /***************************************************************** Caches
@@ -765,15 +765,15 @@ cache_stats &cache_stats::operator+=(const cache_stats &cs) {
   m_cache_data_port_busy_cycles += cs.m_cache_data_port_busy_cycles;
   m_cache_fill_port_busy_cycles += cs.m_cache_fill_port_busy_cycles;
 
-  #define DETAILED_CACHE_STATS
-  #ifdef DETAILED_CACHE_STATS
+#define DETAILED_CACHE_STATS
+#ifdef DETAILED_CACHE_STATS
   g_rt_miss += cs.g_rt_miss;
   g_rt_cold_miss += cs.g_rt_cold_miss;
   for (unsigned status = 0; status < NUM_CACHE_REQUEST_STATUS; ++status) {
     g_rt_cache_stats[status] += cs.g_rt_cache_stats[status];
     g_rt_cache_write_stats[status] += cs.g_rt_cache_write_stats[status];
   }
-  #endif
+#endif
   return *this;
 }
 
@@ -806,9 +806,11 @@ void cache_stats::print_stats(FILE *fout, const char *cache_name) const {
   }
 
   fprintf(fout, "\t%s[GLOBAL_ACC_R]_miss_rate = %5.4f\n", m_cache_name.c_str(),
-          (float)(m_stats[GLOBAL_ACC_R][MISS] + m_stats[GLOBAL_ACC_R][SECTOR_MISS]) /total_access[GLOBAL_ACC_R]);
+          (float)(m_stats[GLOBAL_ACC_R][MISS] +
+                  m_stats[GLOBAL_ACC_R][SECTOR_MISS]) /
+              total_access[GLOBAL_ACC_R]);
 
-  #ifdef DETAILED_CACHE_STATS
+#ifdef DETAILED_CACHE_STATS
   fprintf(fout, "RT_%s:\n", m_cache_name.c_str());
   fprintf(fout, "\trt_read_cold_miss = %d\n", g_rt_cold_miss);
   fprintf(fout, "\trt_read_other_miss = %d\n", g_rt_miss);
@@ -817,25 +819,26 @@ void cache_stats::print_stats(FILE *fout, const char *cache_name) const {
   unsigned total_accesses = 0;
 
   for (unsigned status = 0; status < NUM_CACHE_REQUEST_STATUS; ++status) {
-    fprintf(fout, "\trt_stats[READ][%s] = %d\n", 
-    cache_request_status_str((enum cache_request_status)status), 
-    g_rt_cache_stats[status]);
+    fprintf(fout, "\trt_stats[READ][%s] = %d\n",
+            cache_request_status_str((enum cache_request_status)status),
+            g_rt_cache_stats[status]);
     if (status == HIT || status == MISS || status == SECTOR_MISS ||
-          status == HIT_RESERVED) {
+        status == HIT_RESERVED) {
       total_accesses += g_rt_cache_stats[status];
       if (status == MISS || status == SECTOR_MISS) {
         total_misses += g_rt_cache_stats[status];
       }
     }
   }
-  fprintf(fout, "\trt_read_miss_rate = %5.4f\n", (float)total_misses/total_accesses);
+  fprintf(fout, "\trt_read_miss_rate = %5.4f\n",
+          (float)total_misses / total_accesses);
 
   for (unsigned status = 0; status < NUM_CACHE_REQUEST_STATUS; ++status) {
-    fprintf(fout, "\trt_stats[WRITE][%s] = %d\n", 
-    cache_request_status_str((enum cache_request_status)status), 
-    g_rt_cache_write_stats[status]);
+    fprintf(fout, "\trt_stats[WRITE][%s] = %d\n",
+            cache_request_status_str((enum cache_request_status)status),
+            g_rt_cache_write_stats[status]);
     if (status == HIT || status == MISS || status == SECTOR_MISS ||
-          status == HIT_RESERVED) {
+        status == HIT_RESERVED) {
       total_accesses += g_rt_cache_write_stats[status];
       if (status == MISS || status == SECTOR_MISS) {
         total_misses += g_rt_cache_write_stats[status];
@@ -843,8 +846,9 @@ void cache_stats::print_stats(FILE *fout, const char *cache_name) const {
     }
   }
 
-  fprintf(fout, "\trt_overall_miss_rate = %5.4f\n", (float)total_misses/total_accesses);
-  #endif
+  fprintf(fout, "\trt_overall_miss_rate = %5.4f\n",
+          (float)total_misses / total_accesses);
+#endif
 }
 
 void cache_stats::print_fail_stats(FILE *fout, const char *cache_name) const {
@@ -1151,9 +1155,10 @@ void baseline_cache::print(FILE *fp, unsigned &accesses,
 }
 
 void baseline_cache::get_stats(unsigned &total_access, unsigned &total_misses,
-                          unsigned &total_hit_res,
-                          unsigned &total_res_fail) const {
-  m_tag_array->get_stats(total_access, total_misses, total_hit_res, total_res_fail);
+                               unsigned &total_hit_res,
+                               unsigned &total_res_fail) const {
+  m_tag_array->get_stats(total_access, total_misses, total_hit_res,
+                         total_res_fail);
 }
 void baseline_cache::display_state(FILE *fp) const {
   fprintf(fp, "Cache %s:\n", m_name.c_str());
@@ -1735,11 +1740,12 @@ enum cache_request_status data_cache::access(new_addr_type addr, mem_fetch *mf,
                     m_stats.select_stats_status(probe_status, access_status));
   m_stats.inc_stats_pw(mf->get_access_type(), m_stats.select_stats_status(
                                                   probe_status, access_status));
-  
-  #ifdef DETAILED_CACHE_STATS
+
+#ifdef DETAILED_CACHE_STATS
   // Check if this is a RT access
   if (mf->israytrace()) {
-    int access_outcome = m_stats.select_stats_status(probe_status, access_status);
+    int access_outcome =
+        m_stats.select_stats_status(probe_status, access_status);
 
     // Keep writes separate and don't include them in cache miss count
     if (wr) {
@@ -1755,15 +1761,14 @@ enum cache_request_status data_cache::access(new_addr_type addr, mem_fetch *mf,
         if (m_addr_set.find(addr) == m_addr_set.end()) {
           m_addr_set.insert(addr);
           m_stats.g_rt_cold_miss++;
-        }
-        else {
+        } else {
           m_stats.g_rt_miss++;
         }
       }
     }
   }
 
-  #endif
+#endif
   return access_status;
 }
 

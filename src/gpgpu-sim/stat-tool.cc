@@ -554,14 +554,15 @@ void thread_insn_span::print_sparse_histo(gzFile fout, std::string name) const {
   unsigned total_shaders = gpgpu_ctx->func_sim->g_total_shaders;
 
   // Iterate through each shader
-  for (unsigned s=0; s<total_shaders; s++) {
+  for (unsigned s = 0; s < total_shaders; s++) {
     gzprintf(fout, "%s_%d: ", name.c_str(), s);
     int n_printed_entries = 0;
     span_count_map::const_iterator i_sc = m_insn_span_count.begin();
     for (; i_sc != m_insn_span_count.end(); ++i_sc) {
       unsigned shader = 0;
       // Get line number
-      unsigned ptx_lineno = gpgpu_ctx->translate_pc_to_ptxlineno(i_sc->first, shader);
+      unsigned ptx_lineno =
+          gpgpu_ctx->translate_pc_to_ptxlineno(i_sc->first, shader);
       // Only print PCs for the current shader
       if (s == shader) {
         gzprintf(fout, "%u %d ", ptx_lineno, i_sc->second);

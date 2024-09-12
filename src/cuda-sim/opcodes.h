@@ -74,7 +74,8 @@ enum special_regs {
   uniform_REG
 };
 // Vulkan MESA NIR Special Registers
-// TODO: Need to make translation print out declared regs, treating as special regs for now
+// TODO: Need to make translation print out declared regs, treating as special
+// regs for now
 // TODO: Need to change struct types to a size offset that I can get from mesa
 
 enum wmma_type {

@@ -366,9 +366,11 @@ void function_info::create_basic_blocks() {
             printf("GPGPU-Sim PTX: Warning found predicated call\n");
             // Check if this is the last instruction
             if (i != m_instructions.end()) {
-              // A predicated call is a basic block leader (check that it's not already in the list)
+              // A predicated call is a basic block leader (check that it's not
+              // already in the list)
               if (pI != leaders.back()) leaders.push_back(*i);
-              // The next instruction after a predicated call is also a basic block leader
+              // The next instruction after a predicated call is also a basic
+              // block leader
               i++;
               if (i != m_instructions.end()) leaders.push_back(*i);
             }
@@ -720,11 +722,12 @@ void function_info::find_dominators() {
   }
 }
 
-void function_info::update_postdominators(unsigned BBID, unsigned ReqBB, address_type rpc) {
- 	//Set BB_ID as having delayed reconvergence and set its RPC
+void function_info::update_postdominators(unsigned BBID, unsigned ReqBB,
+                                          address_type rpc) {
+  // Set BB_ID as having delayed reconvergence and set its RPC
   unsigned block_num = (unsigned)-1;
- 	for (unsigned i=0; i<m_basic_blocks.size(); i++) {
-    if(m_basic_blocks[i]->bb_id == BBID) {
+  for (unsigned i = 0; i < m_basic_blocks.size(); i++) {
+    if (m_basic_blocks[i]->bb_id == BBID) {
       printf("Set i %u bbid %u\n", i, BBID);
       m_basic_blocks[i]->has_delayed_reconvergence = true;
       m_basic_blocks[i]->delayed_postdominator_pc = rpc;
@@ -736,83 +739,82 @@ void function_info::update_postdominators(unsigned BBID, unsigned ReqBB, address
 }
 
 void function_info::update_postdominators() {
- 	// Read from a file (file format BB: ReqPDOM,RPC)
- 	if (getenv("DELAYED_REC_INFO") == NULL) return;
- 	char *ptxcode;
- 	const char *delayed_rec_info_filename = getenv("DELAYED_REC_INFO");
- 	ptxcode = readfile(delayed_rec_info_filename);
- 	char st = ptxcode[0];
- 	unsigned j = 0;
- 	unsigned i = 0;
- 	unsigned item = 0;
- 	unsigned item_size = 0;
- 	unsigned total_item_size = 0;
- 	char* KernelName = (char *)malloc(sizeof(char)*100);
- 	char* BBID = (char *)malloc(sizeof(char)*10);
- 	char* ReqPDOMID = (char *)malloc(sizeof(char)*10);
- 	char* RPC = (char *)malloc(sizeof(char)*10);
- 	for (i=0; ;i++) {
- 		if (ptxcode[i] == '*')
- 			break;
+  // Read from a file (file format BB: ReqPDOM,RPC)
+  if (getenv("DELAYED_REC_INFO") == NULL) return;
+  char *ptxcode;
+  const char *delayed_rec_info_filename = getenv("DELAYED_REC_INFO");
+  ptxcode = readfile(delayed_rec_info_filename);
+  char st = ptxcode[0];
+  unsigned j = 0;
+  unsigned i = 0;
+  unsigned item = 0;
+  unsigned item_size = 0;
+  unsigned total_item_size = 0;
+  char *KernelName = (char *)malloc(sizeof(char) * 100);
+  char *BBID = (char *)malloc(sizeof(char) * 10);
+  char *ReqPDOMID = (char *)malloc(sizeof(char) * 10);
+  char *RPC = (char *)malloc(sizeof(char) * 10);
+  for (i = 0;; i++) {
+    if (ptxcode[i] == '*') break;
 
- 		if (ptxcode[i] == ',') {
- 			item = 0;
- 			item_size = 0;
- 			total_item_size = 0;
- 			unsigned BB_ID = (unsigned)-1;
- 			unsigned ReqPDOM_ID = (unsigned)-1;
- 			unsigned RPC_N = (unsigned)-1;
+    if (ptxcode[i] == ',') {
+      item = 0;
+      item_size = 0;
+      total_item_size = 0;
+      unsigned BB_ID = (unsigned)-1;
+      unsigned ReqPDOM_ID = (unsigned)-1;
+      unsigned RPC_N = (unsigned)-1;
 
- 			sscanf(BBID, "%u", &BB_ID);
- 			sscanf(ReqPDOMID, "%u", &ReqPDOM_ID);
- 			sscanf(RPC, "%x", &RPC_N);
- 			printf("%s %s %s\n",BBID, ReqPDOMID, RPC);
- 			printf("%u %u %x\n",BB_ID, ReqPDOM_ID, RPC_N);
- 			printf("%s \n", m_name.c_str());
- 			printf("%s \n", KernelName);
- 			if (compare_strings(KernelName, (char *)m_name.c_str()) == 0) {
- 				printf("%s \n", m_name.c_str());
- 				update_postdominators(BB_ID, ReqPDOM_ID, RPC_N);
- 			}
- 		}
- 		if (ptxcode[i] == ':') {
- 			if (item == 0) {
- 				KernelName[item_size] = '\0';
- 			} else if (item == 1) {
- 				BBID[item_size] = '\0';
- 			} else if (item == 2) {
- 				ReqPDOMID[item_size] = '\0';
- 			} else if (item == 3){
- 				RPC[item_size] = '\0';
- 			}
- 			item++;
- 			if (item == 4) item = 0;
- 			item_size = 0;
- 			continue;
- 		}
+      sscanf(BBID, "%u", &BB_ID);
+      sscanf(ReqPDOMID, "%u", &ReqPDOM_ID);
+      sscanf(RPC, "%x", &RPC_N);
+      printf("%s %s %s\n", BBID, ReqPDOMID, RPC);
+      printf("%u %u %x\n", BB_ID, ReqPDOM_ID, RPC_N);
+      printf("%s \n", m_name.c_str());
+      printf("%s \n", KernelName);
+      if (compare_strings(KernelName, (char *)m_name.c_str()) == 0) {
+        printf("%s \n", m_name.c_str());
+        update_postdominators(BB_ID, ReqPDOM_ID, RPC_N);
+      }
+    }
+    if (ptxcode[i] == ':') {
+      if (item == 0) {
+        KernelName[item_size] = '\0';
+      } else if (item == 1) {
+        BBID[item_size] = '\0';
+      } else if (item == 2) {
+        ReqPDOMID[item_size] = '\0';
+      } else if (item == 3) {
+        RPC[item_size] = '\0';
+      }
+      item++;
+      if (item == 4) item = 0;
+      item_size = 0;
+      continue;
+    }
 
- 		if (item == 0) {
- 			if (ptxcode[i] != ':' && ptxcode[i] != ',') {
- 				KernelName[item_size] = ptxcode[i];
- 				item_size++;
- 			}
- 		} else if (item == 1) {
- 			if (ptxcode[i] != ':' && ptxcode[i] != ',') {
- 				BBID[item_size] = ptxcode[i];
- 				item_size++;
- 			}
- 		} else if (item == 2) {
- 			if (ptxcode[i] != ':' && ptxcode[i] != ',') {
- 				ReqPDOMID[item_size] = ptxcode[i];
- 				item_size++;
- 			}
- 		} else if (item == 3) {
- 			if (ptxcode[i] != ':' && ptxcode[i] != ',') {
- 				RPC[item_size] = ptxcode[i];
- 				item_size++;
- 			}
- 		}
- 	}
+    if (item == 0) {
+      if (ptxcode[i] != ':' && ptxcode[i] != ',') {
+        KernelName[item_size] = ptxcode[i];
+        item_size++;
+      }
+    } else if (item == 1) {
+      if (ptxcode[i] != ':' && ptxcode[i] != ',') {
+        BBID[item_size] = ptxcode[i];
+        item_size++;
+      }
+    } else if (item == 2) {
+      if (ptxcode[i] != ':' && ptxcode[i] != ',') {
+        ReqPDOMID[item_size] = ptxcode[i];
+        item_size++;
+      }
+    } else if (item == 3) {
+      if (ptxcode[i] != ':' && ptxcode[i] != ',') {
+        RPC[item_size] = ptxcode[i];
+        item_size++;
+      }
+    }
+  }
 }
 
 void function_info::find_postdominators() {
@@ -1044,19 +1046,25 @@ void function_info::get_reconvergence_pairs(gpgpu_recon_t *recon_points) {
       printf("\trecon_points[idx].source_pc=%d\n", recon_points[idx].source_pc);
 #endif
       if (m_basic_blocks[i]->has_delayed_reconvergence) {
-        recon_points[idx].target_pc = m_basic_blocks[i]->delayed_postdominator_pc;
-        std::list<ptx_instruction*>::iterator s;
+        recon_points[idx].target_pc =
+            m_basic_blocks[i]->delayed_postdominator_pc;
+        std::list<ptx_instruction *>::iterator s;
         s = m_instructions.begin();
-        for ( ;s!=m_instructions.end(); s++) {
+        for (; s != m_instructions.end(); s++) {
           ptx_instruction *pI = *s;
           if (pI->get_PC() == m_basic_blocks[i]->delayed_postdominator_pc) {
             recon_points[idx].target_inst = pI;
             break;
           }
         }
-      } else if (m_basic_blocks[m_basic_blocks[i]->immediatepostdominator_id]->ptx_begin) {
-        recon_points[idx].target_pc = m_basic_blocks[m_basic_blocks[i]->immediatepostdominator_id]->ptx_begin->get_PC();
-        recon_points[idx].target_inst = m_basic_blocks[m_basic_blocks[i]->immediatepostdominator_id]->ptx_begin;
+      } else if (m_basic_blocks[m_basic_blocks[i]->immediatepostdominator_id]
+                     ->ptx_begin) {
+        recon_points[idx].target_pc =
+            m_basic_blocks[m_basic_blocks[i]->immediatepostdominator_id]
+                ->ptx_begin->get_PC();
+        recon_points[idx].target_inst =
+            m_basic_blocks[m_basic_blocks[i]->immediatepostdominator_id]
+                ->ptx_begin;
       } else {
         // reconverge after function return
         recon_points[idx].target_pc = -2;
@@ -1267,8 +1275,8 @@ static std::list<operand_info> check_operands(
     const std::list<operand_info> &operands, gpgpu_context *ctx) {
   static int g_warn_literal_operands_two_type_inst;
   if ((opcode == CVT_OP) || (opcode == SET_OP) || (opcode == SLCT_OP) ||
-      (opcode == TEX_OP) || (opcode == MMA_OP) || (opcode == DP4A_OP) || 
-      (opcode == VMIN_OP) || (opcode == VMAX_OP) ) {
+      (opcode == TEX_OP) || (opcode == MMA_OP) || (opcode == DP4A_OP) ||
+      (opcode == VMIN_OP) || (opcode == VMAX_OP)) {
     // just make sure these do not have have const operands...
     if (!g_warn_literal_operands_two_type_inst) {
       std::list<operand_info>::const_iterator o;
@@ -1547,8 +1555,10 @@ ptx_instruction::ptx_instruction(
           op.get_addr_space();  // TODO: can have more than one memory space for
                                 // ptxplus (g8x) inst
   }
-  if (opcode == TEX_OP) m_space_spec = tex_space;
-  else if (opcode == TXL_OP) m_space_spec = tex_space;
+  if (opcode == TEX_OP)
+    m_space_spec = tex_space;
+  else if (opcode == TXL_OP)
+    m_space_spec = tex_space;
 
   m_source_file = file ? file : "<unknown>";
   m_source_line = line;

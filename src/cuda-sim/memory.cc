@@ -59,18 +59,19 @@ void memory_space_impl<BSIZE>::write(mem_addr_t addr, size_t length,
                                      const void *data,
                                      class ptx_thread_info *thd,
                                      const ptx_instruction *pI) {
-  if(!use_external_launcher) {
-    void* vulkan_addr = find_vulkan_buffer(addr);
+  if (!use_external_launcher) {
+    void *vulkan_addr = find_vulkan_buffer(addr);
 
     if (vulkan_addr) {
       memcpy(vulkan_addr, data, length);
-    }
-    else {
-      printf("gpgpusim: WARNING: Memory backing buffer not found for address %p. This data write may be invalid\n", addr);
+    } else {
+      printf(
+          "gpgpusim: WARNING: Memory backing buffer not found for address %p. "
+          "This data write may be invalid\n",
+          addr);
       memcpy(addr, data, length);
     }
-  }
-  else {
+  } else {
     mem_addr_t index = addr >> m_log2_block_size;
 
     if ((addr + length) <= (index + 1) * BSIZE) {
@@ -94,7 +95,7 @@ void memory_space_impl<BSIZE>::write(mem_addr_t addr, size_t length,
 
         size_t tx_bytes = access_limit - offset;
         m_data[page].write(offset, tx_bytes,
-                          &((const unsigned char *)data)[src_offset]);
+                           &((const unsigned char *)data)[src_offset]);
 
         // advance pointers
         src_offset += tx_bytes;
@@ -145,16 +146,15 @@ void memory_space_impl<BSIZE>::read_single_block(mem_addr_t blk_idx,
 }
 
 template <unsigned BSIZE>
-void* memory_space_impl<BSIZE>::find_vulkan_buffer(mem_addr_t addr) const {
+void *memory_space_impl<BSIZE>::find_vulkan_buffer(mem_addr_t addr) const {
   mem_addr_t index = addr & ~(VULKAN_ADDR_BLK - 1);
   unsigned offset = addr & (VULKAN_ADDR_BLK - 1);
 
-  if (m_vulkan_address_map.find((void*)index) != m_vulkan_address_map.end()) {
-    void* vulkan_addr = m_vulkan_address_map.at((void*)index);
-    return (void*)((unsigned long long)vulkan_addr + offset);
-  }
-  else {
-    printf("Could not find %p in Vulkan address map\n", (void*)index);
+  if (m_vulkan_address_map.find((void *)index) != m_vulkan_address_map.end()) {
+    void *vulkan_addr = m_vulkan_address_map.at((void *)index);
+    return (void *)((unsigned long long)vulkan_addr + offset);
+  } else {
+    printf("Could not find %p in Vulkan address map\n", (void *)index);
     return NULL;
   }
 }
@@ -162,18 +162,19 @@ void* memory_space_impl<BSIZE>::find_vulkan_buffer(mem_addr_t addr) const {
 template <unsigned BSIZE>
 void memory_space_impl<BSIZE>::read(mem_addr_t addr, size_t length,
                                     void *data) const {
-  if(!use_external_launcher) {
-    void* vulkan_addr = find_vulkan_buffer(addr);
+  if (!use_external_launcher) {
+    void *vulkan_addr = find_vulkan_buffer(addr);
 
     if (vulkan_addr) {
       memcpy(data, vulkan_addr, length);
-    }
-    else {
-      printf("gpgpusim: WARNING: Memory backing buffer not found for address %p. This data read may be invalid\n", addr);
+    } else {
+      printf(
+          "gpgpusim: WARNING: Memory backing buffer not found for address %p. "
+          "This data read may be invalid\n",
+          addr);
       memcpy(data, addr, length);
     }
-  }
-  else {
+  } else {
     mem_addr_t index = addr >> m_log2_block_size;
     if ((addr + length) <= (index + 1) * BSIZE) {
       // fast route for intra-block access
@@ -222,9 +223,11 @@ void memory_space_impl<BSIZE>::set_watch(addr_t addr, unsigned watchpoint) {
 }
 
 template <unsigned BSIZE>
-void memory_space_impl<BSIZE>::bind_vulkan_buffer(void* bufferAddr, unsigned bufferSize, void* devPtr) {
+void memory_space_impl<BSIZE>::bind_vulkan_buffer(void *bufferAddr,
+                                                  unsigned bufferSize,
+                                                  void *devPtr) {
   unsigned index = 0;
-  void* addr = bufferAddr;
+  void *addr = bufferAddr;
   while (addr < (bufferAddr + bufferSize)) {
     m_vulkan_address_map[devPtr + index * VULKAN_ADDR_BLK] = addr;
     addr += VULKAN_ADDR_BLK;

@@ -39,7 +39,7 @@
 #include <string>
 #include <vector>
 
-//#include "ptx.tab.h"
+// #include "ptx.tab.h"
 #include "ptx_sim.h"
 
 #include "memory.h"
@@ -436,7 +436,8 @@ class operand_info {
     m_is_return_var = false;
     m_immediate_address = false;
   }
-  operand_info(const symbol *addr, int dim_modifier, bool is_vector, gpgpu_context *ctx) {
+  operand_info(const symbol *addr, int dim_modifier, bool is_vector,
+               gpgpu_context *ctx) {
     init(ctx);
     m_is_non_arch_reg = false;
     m_addr_space = undefined_space;
@@ -1059,7 +1060,7 @@ class ptx_instruction : public warp_inst_t {
                   const std::list<int> &scalar_type, memory_space_t space_spec,
                   const char *file, unsigned line, const char *source,
                   const core_config *config, gpgpu_context *ctx);
-                  
+
   void print_insn() const;
   virtual void print_insn(FILE *fp) const;
   std::string to_string() const;
@@ -1083,8 +1084,8 @@ class ptx_instruction : public warp_inst_t {
   int get_pred_mod() const { return m_pred_mod; }
   const char *get_source() const { return m_source.c_str(); }
 
-  const std::list<int> get_scalar_type() const {return m_scalar_type;}
-  const std::list<int> get_options() const {return m_options;}
+  const std::list<int> get_scalar_type() const { return m_scalar_type; }
+  const std::list<int> get_options() const { return m_options; }
 
   typedef std::vector<operand_info>::const_iterator const_iterator;
 
@@ -1213,7 +1214,8 @@ class ptx_instruction : public warp_inst_t {
 
   bool has_memory_read() const {
     if (m_opcode == LD_OP || m_opcode == LDU_OP || m_opcode == TEX_OP ||
-        m_opcode == MMA_LD_OP || m_opcode == TXL_OP || m_opcode == IMG_DEREF_LD_OP)
+        m_opcode == MMA_LD_OP || m_opcode == TXL_OP ||
+        m_opcode == IMG_DEREF_LD_OP)
       return true;
     // Check PTXPlus operand type below
     // Source operands are memory operands
@@ -1225,7 +1227,9 @@ class ptx_instruction : public warp_inst_t {
     return false;
   }
   bool has_memory_write() const {
-    if (m_opcode == ST_OP || m_opcode == MMA_ST_OP || m_opcode == IMG_DEREF_ST_OP) return true;
+    if (m_opcode == ST_OP || m_opcode == MMA_ST_OP ||
+        m_opcode == IMG_DEREF_ST_OP)
+      return true;
     // Check PTXPlus operand type below
     // Destination operand is a memory operand
     ptx_instruction::const_iterator op = op_iter_begin();
@@ -1495,42 +1499,41 @@ class function_info {
   std::pair<size_t, unsigned> get_param_config(unsigned param_num) const {
     return m_param_configs[param_num];
   }
-  
-int compare_strings(char a[], char b[]) {
-  int c = 0;
 
-  while (a[c] == b[c]) {
-    if (a[c] == '\0' || b[c] == '\0')
-      break;
-    c++;
+  int compare_strings(char a[], char b[]) {
+    int c = 0;
+
+    while (a[c] == b[c]) {
+      if (a[c] == '\0' || b[c] == '\0') break;
+      c++;
+    }
+
+    if (a[c] == '\0' && b[c] == '\0')
+      return 0;
+    else
+      return -1;
   }
 
-  if (a[c] == '\0' && b[c] == '\0')
-    return 0;
-  else
-    return -1;
-}
+  char *readfile(const std::string filename) {
+    assert(filename != "");
+    FILE *fp = fopen(filename.c_str(), "r");
+    if (!fp) {
+      printf("ERROR: Could not open file %s for reading\n", filename);
+      assert(0);
+    }
+    // finding size of the file
+    int filesize = 0;
+    fseek(fp, 0, SEEK_END);
 
-char* readfile(const std::string filename) {
-  assert (filename != "");
-  FILE* fp = fopen(filename.c_str(),"r");
-  if (!fp) {
-    printf("ERROR: Could not open file %s for reading\n", filename);
-    assert (0);
+    filesize = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    // allocate and copy the entire ptx
+    char *ret = (char *)malloc((filesize + 1) * sizeof(char));
+    fread(ret, 1, filesize, fp);
+    ret[filesize] = '\0';
+    fclose(fp);
+    return ret;
   }
-  // finding size of the file
-  int filesize = 0;
-  fseek(fp, 0, SEEK_END);
-
-  filesize = ftell(fp);
-  fseek(fp, 0, SEEK_SET);
-  // allocate and copy the entire ptx
-  char* ret = (char*)malloc((filesize + 1) * sizeof(char));
-  fread(ret, 1, filesize, fp);
-  ret[filesize] = '\0';
-  fclose(fp);
-  return ret;
-}
 
   void set_maxnt_id(unsigned maxthreads) { maxnt_id = maxthreads; }
   unsigned get_maxnt_id() { return maxnt_id; }

@@ -373,7 +373,8 @@ void gpgpu_context::gpgpu_ptx_info_load_from_filename(const char *filename,
   fclose(ptxinfo_in);
 }
 
-void gpgpu_context::gpgpu_ptx_info_load_from_external_file(const char *filename) {
+void gpgpu_context::gpgpu_ptx_info_load_from_external_file(
+    const char *filename) {
   std::cout << "Parsing ptxinfo from file: " << filename << std::endl;
   FILE *ptxinfo_in;
   ptxinfo->g_ptxinfo_filename = strdup(filename);

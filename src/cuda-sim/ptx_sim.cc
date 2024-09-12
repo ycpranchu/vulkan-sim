@@ -187,7 +187,7 @@ ptx_thread_info::ptx_thread_info(kernel_info_t &kernel) : m_kernel(kernel) {
   m_local_mem_stack_pointer = 0;
   m_gpu = NULL;
   m_last_set_operand_value = ptx_reg_t();
-  
+
   RT_thread_data = new Vulkan_RT_thread_data;
 }
 
@@ -575,8 +575,7 @@ ptx_reg_t ptx_thread_info::get_reg(std::string regName) {
     const symbol *sym = r->first;
     ptx_reg_t value = r->second;
     std::string name = sym->name();
-    if(name == regName)
-      return value;
+    if (name == regName) return value;
   }
 }
 
@@ -629,14 +628,15 @@ void ptx_thread_info::set_npc(const function_info *f) {
   m_symbol_table = m_func_info->get_symtab();
 }
 
-void ptx_thread_info::set_txl_transactions(std::vector<ImageMemoryTransactionRecord> transactions) {
+void ptx_thread_info::set_txl_transactions(
+    std::vector<ImageMemoryTransactionRecord> transactions) {
   // Anything beyond bilinear is not implemented
   assert(transactions.size() <= 4);
 
   std::set<addr_t> addr_set;
   unsigned size = transactions[0].size;
   // Merge transactions
-  for (auto it=transactions.begin(); it!=transactions.end(); it++) {
+  for (auto it = transactions.begin(); it != transactions.end(); it++) {
     ImageMemoryTransactionRecord &record = *it;
     assert(record.size == size);
     addr_set.insert(addr_t(record.address));
@@ -648,7 +648,8 @@ void ptx_thread_info::set_txl_transactions(std::vector<ImageMemoryTransactionRec
   m_last_effective_size = size;
 }
 
-void ptx_thread_info::set_txl_transactions(ImageMemoryTransactionRecord transaction) {
+void ptx_thread_info::set_txl_transactions(
+    ImageMemoryTransactionRecord transaction) {
   // This should only be for IMG_DEREF_LD
   m_last_effective_address = transaction.address;
   m_last_effective_size = transaction.size;

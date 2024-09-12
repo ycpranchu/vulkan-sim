@@ -106,7 +106,7 @@ struct power_config {
       // sscanf(gpu_nonlinear_model_config, "%lf:%lf", &gpu_idle_core_power,
       //        &gpu_min_inc_per_active_sm);
       gpu_idle_core_power = 0;
-      gpu_min_inc_per_active_sm = 0;
+    gpu_min_inc_per_active_sm = 0;
   }
   void reg_options(class OptionParser *opp);
 
@@ -357,7 +357,8 @@ class gpgpu_sim_config : public power_config,
     if (g_visualizer_filename == 0x0) {
       snprintf(buf, 1024, "gpgpusim_visualizer__%s.log.gz", date);
     } else {
-      snprintf(buf, 1024, "aerialvision__%s__%s.log.gz", g_visualizer_filename, date);
+      snprintf(buf, 1024, "aerialvision__%s__%s.log.gz", g_visualizer_filename,
+               date);
     }
     g_visualizer_filename = strdup(buf);
 
@@ -573,7 +574,9 @@ class gpgpu_sim : public gpgpu_t {
   void hit_watchpoint(unsigned watchpoint_num, ptx_thread_info *thd,
                       const ptx_instruction *pI);
 
-  const struct shader_core_config* get_shader_config() { return m_shader_config; }
+  const struct shader_core_config *get_shader_config() {
+    return m_shader_config;
+  }
 
   // backward pointer
   class gpgpu_context *gpgpu_ctx;
@@ -676,7 +679,7 @@ class gpgpu_sim : public gpgpu_t {
   bool has_special_cache_config(std::string kernel_name);
   void change_cache_config(FuncCache cache_config);
   void set_cache_config(std::string kernel_name);
-  
+
   void visualizer_print_traceray();
 
   // Jin: functional simulation for CDP

@@ -150,11 +150,12 @@ class cuda_sim {
   int cp_cta_resume;
   int g_ptxinfo_error_detected;
   unsigned g_ptx_sim_num_insn;
-  
+
   // Ray tracing memory access type stats
-  unsigned g_rt_mem_access_type[static_cast<int>(TransactionType::UNDEFINED)] = {0};
-  unsigned g_rt_num_hits = 0; 
-  unsigned g_rt_num_any_hits = 0; 
+  unsigned g_rt_mem_access_type[static_cast<int>(TransactionType::UNDEFINED)] =
+      {0};
+  unsigned g_rt_num_hits = 0;
+  unsigned g_rt_num_any_hits = 0;
   bool g_rt_world_set = false;
   float3 g_rt_world_min = {0, 0, 0};
   float3 g_rt_world_max = {0, 0, 0};
@@ -167,7 +168,7 @@ class cuda_sim {
   unsigned long long g_inst_type_latency[28] = {0};
   unsigned g_inst_class_stat[16][20] = {};
   std::vector<std::pair<unsigned, unsigned> > g_traceray_instructions;
-  
+
   char *cdp_latency_str;
   int g_ptx_kernel_count;  // used for classification stat collection purposes
   std::map<const void *, std::string>

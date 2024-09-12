@@ -573,26 +573,40 @@ void ptx_instruction::set_fp_or_int_archop() {
   if ((m_opcode == MEMBAR_OP) || (m_opcode == SSY_OP) || (m_opcode == BRA_OP) ||
       (m_opcode == BAR_OP) || (m_opcode == RET_OP) || (m_opcode == RETP_OP) ||
       (m_opcode == NOP_OP) || (m_opcode == EXIT_OP) || (m_opcode == CALLP_OP) ||
-      (m_opcode == CALL_OP) || (m_opcode == TRACE_RAY_OP) || (m_opcode == CALL_MISS_SHADER_OP) ||
-      (m_opcode == CALL_CLOSEST_HIT_SHADER_OP) || (m_opcode == LD_RAY_LAUNCH_ID_OP) ||
+      (m_opcode == CALL_OP) || (m_opcode == TRACE_RAY_OP) ||
+      (m_opcode == CALL_MISS_SHADER_OP) ||
+      (m_opcode == CALL_CLOSEST_HIT_SHADER_OP) ||
+      (m_opcode == LD_RAY_LAUNCH_ID_OP) ||
       (m_opcode == LD_RAY_LAUNCH_SIZE_OP) || (m_opcode == LD_VK_DESC_OP) ||
       (m_opcode == IMG_DEREF_ST_OP) || (m_opcode == RT_ALLOC_MEM_OP) ||
-      (m_opcode == DEREF_VAR_OP) || (m_opcode == WRAP_32_4_OP) || (m_opcode == UNWRAP_32_4_OP) ||
-      (m_opcode == GET_ELEMENT_32_OP) || (m_opcode == SET_ELEMENT_32_OP) ||
-      (m_opcode == LOAD_RAY_WORLD_TO_OBJECT_OP) || (m_opcode == LOAD_RAY_OBJECT_TO_WORLD_OP) ||
-      (m_opcode == LOAD_RAY_WORLD_DIRECTION_OP) || (m_opcode == LOAD_PRIMITIVE_ID_OP) ||
-      (m_opcode == LOAD_RAY_INSTANCE_CUSTOM_INDEX_OP) || (m_opcode == END_TRACE_RAY_OP) ||
-      (m_opcode == LOAD_RAY_WORLD_ORIGIN_OP) || (m_opcode == LOAD_RAY_T_MAX_OP) ||
-      (m_opcode == TXL_OP) || (m_opcode == SHADER_CLOCK_OP) || (m_opcode == IMG_DEREF_LD_OP) ||
-      (m_opcode == RUN_INTERSECTION_OP) || (m_opcode == GET_INTERSECTION_INDEX_OP) ||
-      (m_opcode == RUN_ANYHIT_OP) || (m_opcode == GET_ANYHIT_INDEX_OP) ||
-      (m_opcode == CALL_INTERSECTION_SHADER_OP) || (m_opcode == INTERSECTION_EXIT_OP) || 
-      (m_opcode == CALL_ANYHIT_SHADER_OP) || (m_opcode == ANYHIT_EXIT_OP) || 
-      (m_opcode == REPORT_RAY_INTERSECTION_OP) || (m_opcode == IGNORE_RAY_INTERSECTION_OP) || (m_opcode == LOAD_RAY_T_MIN_OP) || 
-      (m_opcode == HIT_GEOMETRY_OP) || (m_opcode == COPYSIGNF_OP) || (m_opcode == GET_HITGROUP_OP) || 
-      (m_opcode == GET_WARP_HITGROUP_OP) || (m_opcode == GET_CLOSEST_HIT_SHADERID_OP) ||
-      (m_opcode == GET_INTERSECTION_SHADERID_OP) || (m_opcode == GET_INTERSECTION_SHADER_DATA_ADDRESS_OP) ||
-      (m_opcode == GET_ANYHIT_SHADERID_OP) || (m_opcode == GET_ANYHIT_SHADER_DATA_ADDRESS_OP)) {
+      (m_opcode == DEREF_VAR_OP) || (m_opcode == WRAP_32_4_OP) ||
+      (m_opcode == UNWRAP_32_4_OP) || (m_opcode == GET_ELEMENT_32_OP) ||
+      (m_opcode == SET_ELEMENT_32_OP) ||
+      (m_opcode == LOAD_RAY_WORLD_TO_OBJECT_OP) ||
+      (m_opcode == LOAD_RAY_OBJECT_TO_WORLD_OP) ||
+      (m_opcode == LOAD_RAY_WORLD_DIRECTION_OP) ||
+      (m_opcode == LOAD_PRIMITIVE_ID_OP) ||
+      (m_opcode == LOAD_RAY_INSTANCE_CUSTOM_INDEX_OP) ||
+      (m_opcode == END_TRACE_RAY_OP) ||
+      (m_opcode == LOAD_RAY_WORLD_ORIGIN_OP) ||
+      (m_opcode == LOAD_RAY_T_MAX_OP) || (m_opcode == TXL_OP) ||
+      (m_opcode == SHADER_CLOCK_OP) || (m_opcode == IMG_DEREF_LD_OP) ||
+      (m_opcode == RUN_INTERSECTION_OP) ||
+      (m_opcode == GET_INTERSECTION_INDEX_OP) || (m_opcode == RUN_ANYHIT_OP) ||
+      (m_opcode == GET_ANYHIT_INDEX_OP) ||
+      (m_opcode == CALL_INTERSECTION_SHADER_OP) ||
+      (m_opcode == INTERSECTION_EXIT_OP) ||
+      (m_opcode == CALL_ANYHIT_SHADER_OP) || (m_opcode == ANYHIT_EXIT_OP) ||
+      (m_opcode == REPORT_RAY_INTERSECTION_OP) ||
+      (m_opcode == IGNORE_RAY_INTERSECTION_OP) ||
+      (m_opcode == LOAD_RAY_T_MIN_OP) || (m_opcode == HIT_GEOMETRY_OP) ||
+      (m_opcode == COPYSIGNF_OP) || (m_opcode == GET_HITGROUP_OP) ||
+      (m_opcode == GET_WARP_HITGROUP_OP) ||
+      (m_opcode == GET_CLOSEST_HIT_SHADERID_OP) ||
+      (m_opcode == GET_INTERSECTION_SHADERID_OP) ||
+      (m_opcode == GET_INTERSECTION_SHADER_DATA_ADDRESS_OP) ||
+      (m_opcode == GET_ANYHIT_SHADERID_OP) ||
+      (m_opcode == GET_ANYHIT_SHADER_DATA_ADDRESS_OP)) {
     // do nothing
   } else if ((m_opcode == CVT_OP || m_opcode == SET_OP ||
               m_opcode == SLCT_OP)) {
@@ -616,26 +630,40 @@ void ptx_instruction::set_mul_div_or_other_archop() {
   if ((m_opcode != MEMBAR_OP) && (m_opcode != SSY_OP) && (m_opcode != BRA_OP) &&
       (m_opcode != BAR_OP) && (m_opcode != EXIT_OP) && (m_opcode != NOP_OP) &&
       (m_opcode != RETP_OP) && (m_opcode != RET_OP) && (m_opcode != CALLP_OP) &&
-      (m_opcode != CALL_OP) && (m_opcode != TRACE_RAY_OP) && (m_opcode != CALL_MISS_SHADER_OP) &&
-      (m_opcode != CALL_CLOSEST_HIT_SHADER_OP) && (m_opcode != LD_RAY_LAUNCH_ID_OP) &&
+      (m_opcode != CALL_OP) && (m_opcode != TRACE_RAY_OP) &&
+      (m_opcode != CALL_MISS_SHADER_OP) &&
+      (m_opcode != CALL_CLOSEST_HIT_SHADER_OP) &&
+      (m_opcode != LD_RAY_LAUNCH_ID_OP) &&
       (m_opcode != LD_RAY_LAUNCH_SIZE_OP) && (m_opcode != LD_VK_DESC_OP) &&
       (m_opcode != IMG_DEREF_ST_OP) && (m_opcode != RT_ALLOC_MEM_OP) &&
-      (m_opcode != DEREF_VAR_OP) && (m_opcode != WRAP_32_4_OP) && (m_opcode != UNWRAP_32_4_OP) && 
-      (m_opcode != GET_ELEMENT_32_OP) && (m_opcode != SET_ELEMENT_32_OP) &&
-      (m_opcode != LOAD_RAY_WORLD_TO_OBJECT_OP) && (m_opcode != LOAD_RAY_OBJECT_TO_WORLD_OP) &&
-      (m_opcode != LOAD_RAY_WORLD_DIRECTION_OP) && (m_opcode != LOAD_PRIMITIVE_ID_OP) &&
-      (m_opcode != LOAD_RAY_INSTANCE_CUSTOM_INDEX_OP) && (m_opcode != END_TRACE_RAY_OP) &&
-      (m_opcode != LOAD_RAY_WORLD_ORIGIN_OP) && (m_opcode != LOAD_RAY_T_MAX_OP) &&
-      (m_opcode != TXL_OP) && (m_opcode != SHADER_CLOCK_OP) && (m_opcode != IMG_DEREF_LD_OP) &&
-      (m_opcode != RUN_INTERSECTION_OP) && (m_opcode != GET_INTERSECTION_INDEX_OP) &&
-      (m_opcode != RUN_ANYHIT_OP) && (m_opcode != GET_ANYHIT_INDEX_OP) &&
-      (m_opcode != CALL_INTERSECTION_SHADER_OP) && (m_opcode != INTERSECTION_EXIT_OP) &&
+      (m_opcode != DEREF_VAR_OP) && (m_opcode != WRAP_32_4_OP) &&
+      (m_opcode != UNWRAP_32_4_OP) && (m_opcode != GET_ELEMENT_32_OP) &&
+      (m_opcode != SET_ELEMENT_32_OP) &&
+      (m_opcode != LOAD_RAY_WORLD_TO_OBJECT_OP) &&
+      (m_opcode != LOAD_RAY_OBJECT_TO_WORLD_OP) &&
+      (m_opcode != LOAD_RAY_WORLD_DIRECTION_OP) &&
+      (m_opcode != LOAD_PRIMITIVE_ID_OP) &&
+      (m_opcode != LOAD_RAY_INSTANCE_CUSTOM_INDEX_OP) &&
+      (m_opcode != END_TRACE_RAY_OP) &&
+      (m_opcode != LOAD_RAY_WORLD_ORIGIN_OP) &&
+      (m_opcode != LOAD_RAY_T_MAX_OP) && (m_opcode != TXL_OP) &&
+      (m_opcode != SHADER_CLOCK_OP) && (m_opcode != IMG_DEREF_LD_OP) &&
+      (m_opcode != RUN_INTERSECTION_OP) &&
+      (m_opcode != GET_INTERSECTION_INDEX_OP) && (m_opcode != RUN_ANYHIT_OP) &&
+      (m_opcode != GET_ANYHIT_INDEX_OP) &&
+      (m_opcode != CALL_INTERSECTION_SHADER_OP) &&
+      (m_opcode != INTERSECTION_EXIT_OP) &&
       (m_opcode != CALL_ANYHIT_SHADER_OP) && (m_opcode != ANYHIT_EXIT_OP) &&
-      (m_opcode != REPORT_RAY_INTERSECTION_OP) && (m_opcode != IGNORE_RAY_INTERSECTION_OP) && (m_opcode != LOAD_RAY_T_MIN_OP) &&
-      (m_opcode != HIT_GEOMETRY_OP) && (m_opcode != COPYSIGNF_OP) && (m_opcode != GET_HITGROUP_OP) &&
-      (m_opcode != GET_WARP_HITGROUP_OP) && (m_opcode != GET_CLOSEST_HIT_SHADERID_OP) &&
-      (m_opcode != GET_INTERSECTION_SHADERID_OP) && (m_opcode != GET_INTERSECTION_SHADER_DATA_ADDRESS_OP) &&
-      (m_opcode != GET_ANYHIT_SHADERID_OP) && (m_opcode != GET_ANYHIT_SHADER_DATA_ADDRESS_OP)) {
+      (m_opcode != REPORT_RAY_INTERSECTION_OP) &&
+      (m_opcode != IGNORE_RAY_INTERSECTION_OP) &&
+      (m_opcode != LOAD_RAY_T_MIN_OP) && (m_opcode != HIT_GEOMETRY_OP) &&
+      (m_opcode != COPYSIGNF_OP) && (m_opcode != GET_HITGROUP_OP) &&
+      (m_opcode != GET_WARP_HITGROUP_OP) &&
+      (m_opcode != GET_CLOSEST_HIT_SHADERID_OP) &&
+      (m_opcode != GET_INTERSECTION_SHADERID_OP) &&
+      (m_opcode != GET_INTERSECTION_SHADER_DATA_ADDRESS_OP) &&
+      (m_opcode != GET_ANYHIT_SHADERID_OP) &&
+      (m_opcode != GET_ANYHIT_SHADER_DATA_ADDRESS_OP)) {
     if (get_type() == F32_TYPE || get_type() == F64_TYPE ||
         get_type() == FF64_TYPE) {
       switch (get_opcode()) {
@@ -1076,7 +1104,8 @@ void ptx_instruction::pre_decode() {
   data_size = 0;
   if (has_memory_read() || has_memory_write()) {
     // Data size is set later during execution for ray tracing instructions
-    if (m_opcode != IMG_DEREF_LD_OP && m_opcode != IMG_DEREF_ST_OP && m_opcode != TXL_OP) {
+    if (m_opcode != IMG_DEREF_LD_OP && m_opcode != IMG_DEREF_ST_OP &&
+        m_opcode != TXL_OP) {
       unsigned to_type = get_type();
       data_size = datatype2size(to_type);
     }
@@ -1095,7 +1124,7 @@ void ptx_instruction::pre_decode() {
 #define OP_W_DEF(OP, FUNC, STR, DST, CLASSIFICATION) \
   case OP:                                           \
     has_dst = (DST != 0);                            \
-    op_classification = CLASSIFICATION;            \
+    op_classification = CLASSIFICATION;              \
     break;
 #include "opcodes.def"
 #undef OP_DEF
@@ -1107,10 +1136,12 @@ void ptx_instruction::pre_decode() {
 
   if (get_opcode() == TRACE_RAY_OP) {
     unsigned shader_id = 0;
-    printf("trace_ray instruction found at PC %d (line %d,", pc, GPGPU_Context()->translate_pc_to_ptxlineno(pc, shader_id));
+    printf("trace_ray instruction found at PC %d (line %d,", pc,
+           GPGPU_Context()->translate_pc_to_ptxlineno(pc, shader_id));
     printf(" shader %d)!\n", shader_id);
     unsigned line = GPGPU_Context()->translate_pc_to_ptxlineno(pc, shader_id);
-    gpgpu_ctx->func_sim->g_traceray_instructions.push_back(std::pair<unsigned, unsigned>(shader_id, line));
+    gpgpu_ctx->func_sim->g_traceray_instructions.push_back(
+        std::pair<unsigned, unsigned>(shader_id, line));
   }
 
   switch (m_cache_option) {
@@ -1140,10 +1171,12 @@ void ptx_instruction::pre_decode() {
       break;
     default:
       // if( m_opcode == LD_OP || m_opcode == LDU_OP )
-      if (m_opcode == MMA_LD_OP || m_opcode == LD_OP || m_opcode == LDU_OP || m_opcode == IMG_DEREF_LD_OP)
+      if (m_opcode == MMA_LD_OP || m_opcode == LD_OP || m_opcode == LDU_OP ||
+          m_opcode == IMG_DEREF_LD_OP)
         cache_op = CACHE_ALL;
       // else if( m_opcode == ST_OP )
-      else if (m_opcode == MMA_ST_OP || m_opcode == ST_OP || m_opcode == IMG_DEREF_ST_OP)
+      else if (m_opcode == MMA_ST_OP || m_opcode == ST_OP ||
+               m_opcode == IMG_DEREF_ST_OP)
         cache_op = CACHE_WRITE_BACK;
       else if (m_opcode == ATOM_OP)
         cache_op = CACHE_GLOBAL;
@@ -1158,8 +1191,7 @@ void ptx_instruction::pre_decode() {
   // Use special function for all the ray tracing instructions
   if (op_classification >= 11) {
     set_input_output_registers();
-  }
-  else {
+  } else {
     // Get register operands
     int n = 0, m = 0;
     ptx_instruction::const_iterator opr = op_iter_begin();
@@ -1181,7 +1213,8 @@ void ptx_instruction::pre_decode() {
           if (num_elem >= 6) out[5] = o.reg6_num();
           if (num_elem >= 7) out[6] = o.reg7_num();
           if (num_elem >= 8) out[7] = o.reg8_num();
-          for (int i = 0; i < num_elem; i++) arch_reg.dst[i] = o.arch_reg_num(i);
+          for (int i = 0; i < num_elem; i++)
+            arch_reg.dst[i] = o.arch_reg_num(i);
         }
       } else {
         if (o.is_reg() && !o.is_non_arch_reg()) {
@@ -1202,8 +1235,8 @@ void ptx_instruction::pre_decode() {
           }
           m++;
         } else if (o.is_vector()) {
-          // assert(m == 0); //only support 1 vector operand (for textures) right
-          // now
+          // assert(m == 0); //only support 1 vector operand (for textures)
+          // right now
           is_vectorout = 1;
           unsigned num_elem = o.get_vect_nelem();
           if (num_elem >= 1) in[m + 0] = o.reg1_num();
@@ -1239,10 +1272,10 @@ void ptx_instruction::pre_decode() {
   // Get address registers inside memory operands.
   // Assuming only one memory operand per instruction,
   //  and maximum of two address registers for one memory operand.
-  if (m_opcode == TXL_OP || m_opcode == IMG_DEREF_LD_OP || m_opcode == IMG_DEREF_ST_OP) {
+  if (m_opcode == TXL_OP || m_opcode == IMG_DEREF_LD_OP ||
+      m_opcode == IMG_DEREF_ST_OP) {
     // TODO: Figure out memory operands (if any exist)
-  }
-  else if (has_memory_read() || has_memory_write()) {
+  } else if (has_memory_read() || has_memory_write()) {
     ptx_instruction::const_iterator op = op_iter_begin();
     for (; op != op_iter_end(); op++) {  // process operands
       const operand_info &o = *op;
@@ -1297,7 +1330,7 @@ void ptx_instruction::pre_decode() {
 void ptx_instruction::set_input_output_registers() {
   unsigned num_operands = get_num_operands();
   std::list<unsigned> operand_classification;
-  switch(m_opcode) {
+  switch (m_opcode) {
     case TRACE_RAY_OP:
       operand_classification = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2};
       break;
@@ -1345,9 +1378,13 @@ void ptx_instruction::set_input_output_registers() {
       if (num_operands == 13) {
         operand_classification = {1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1};
       } else if (num_operands == 16) {
-        operand_classification = {1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+        operand_classification = {1, 2, 2, 2, 2, 1, 1, 1,
+                                  1, 1, 1, 1, 1, 1, 1, 1};
       } else {
-        printf("Unexpected number of operands on line %d. Expected 13/16, received %d\n", m_source_line, num_operands);
+        printf(
+            "Unexpected number of operands on line %d. Expected 13/16, "
+            "received %d\n",
+            m_source_line, num_operands);
         abort();
       }
       break;
@@ -1355,9 +1392,13 @@ void ptx_instruction::set_input_output_registers() {
       if (num_operands == 13) {
         operand_classification = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
       } else if (num_operands == 16) {
-        operand_classification = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+        operand_classification = {1, 1, 1, 1, 1, 1, 1, 1,
+                                  1, 1, 1, 1, 1, 1, 1, 1};
       } else {
-        printf("Unexpected number of operands on line %d. Expected 13/16, received %d\n", m_source_line, num_operands);
+        printf(
+            "Unexpected number of operands on line %d. Expected 13/16, "
+            "received %d\n",
+            m_source_line, num_operands);
         abort();
       }
       break;
@@ -1379,7 +1420,7 @@ void ptx_instruction::set_input_output_registers() {
     ptx_instruction::const_iterator opr = op_iter_begin();
     for (; opr != op_iter_end(); opr++) {  // process operands
       const operand_info &o = *opr;
-      
+
       if (!o.is_reg()) continue;
 
       int reg_num = o.reg_num();
@@ -1387,19 +1428,16 @@ void ptx_instruction::set_input_output_registers() {
         arch_reg.src[in_index] = reg_num;
         in[in_index] = reg_num;
         in_index++;
-      }
-      else if (operand_classification.front() == 2) {
+      } else if (operand_classification.front() == 2) {
         arch_reg.dst[out_index] = reg_num;
         out[out_index] = reg_num;
         out_index++;
-      }
-      else {
+      } else {
         assert(0);
       }
       operand_classification.pop_front();
     }
-  }
-  else {
+  } else {
     printf("Operand information not set. %s\n", m_source.c_str());
   }
 }
@@ -1996,10 +2034,13 @@ void ptx_thread_info::ptx_exec_inst(warp_inst_t &inst, unsigned lane_id) {
       fflush(m_gpu->get_ptx_inst_debug_file());
     }
 
-    // if (m_gpu->gpgpu_ctx->func_sim->ptx_debug_exec_dump_cond<5>(get_uid(), pc)) {
-    unsigned long long gpgpusim_total_cycles =  m_gpu->gpgpu_ctx->the_gpgpusim->g_the_gpu->gpu_sim_cycle +
-                                                m_gpu->gpgpu_ctx->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle;
-    if (m_gpu->gpgpu_ctx->func_sim->ptx_debug_exec_dump_cond<5>(get_uid(), pc) &&
+    // if (m_gpu->gpgpu_ctx->func_sim->ptx_debug_exec_dump_cond<5>(get_uid(),
+    // pc)) {
+    unsigned long long gpgpusim_total_cycles =
+        m_gpu->gpgpu_ctx->the_gpgpusim->g_the_gpu->gpu_sim_cycle +
+        m_gpu->gpgpu_ctx->the_gpgpusim->g_the_gpu->gpu_tot_sim_cycle;
+    if (m_gpu->gpgpu_ctx->func_sim->ptx_debug_exec_dump_cond<5>(get_uid(),
+                                                                pc) &&
         (m_gpu->gpgpu_ctx->func_sim->g_debug_cycle < gpgpusim_total_cycles)) {
       dim3 ctaid = get_ctaid();
       dim3 tid = get_tid();
@@ -2019,7 +2060,8 @@ void ptx_thread_info::ptx_exec_inst(warp_inst_t &inst, unsigned lane_id) {
     unsigned insn_data_size = 0;
     if ((pI->has_memory_read() || pI->has_memory_write())) {
       if (!((inst_opcode == MMA_LD_OP || inst_opcode == MMA_ST_OP ||
-              inst_opcode == TXL_OP || inst_opcode == IMG_DEREF_LD_OP || inst_opcode == IMG_DEREF_ST_OP))) {
+             inst_opcode == TXL_OP || inst_opcode == IMG_DEREF_LD_OP ||
+             inst_opcode == IMG_DEREF_ST_OP))) {
         insn_memaddr = last_eaddr();
         insn_space = last_space();
         unsigned to_type = pI->get_type();
@@ -2078,19 +2120,19 @@ void ptx_thread_info::ptx_exec_inst(warp_inst_t &inst, unsigned lane_id) {
       inst.data_size = insn_data_size;
     }
 
-    if (pI->get_opcode() == TRACE_RAY_OP) { 
+    if (pI->get_opcode() == TRACE_RAY_OP) {
       // Copy list of accesses to warp instruction
       inst.set_rt_mem_transactions(lane_id, RT_transactions);
       inst.set_rt_mem_store_transactions(lane_id, RT_store_transactions);
       inst.set_rt_ray_properties(lane_id, m_ray);
-      
+
       // Set memory space
       insn_space.set_type(global_space);
       inst.space = insn_space;
       insn_data_size = 16;
       inst.data_size = insn_data_size;
     }
-    
+
     // Output register information to file and stdout
     if (config.get_ptx_inst_debug_to_file() != 0 &&
         (config.get_ptx_inst_debug_thread_uid() == 0 ||
@@ -2100,12 +2142,14 @@ void ptx_thread_info::ptx_exec_inst(warp_inst_t &inst, unsigned lane_id) {
     }
 
     if (g_debug_execution >= 6) {
-      if (m_gpu->gpgpu_ctx->func_sim->ptx_debug_exec_dump_cond<6>(get_uid(), pc) &&
+      if (m_gpu->gpgpu_ctx->func_sim->ptx_debug_exec_dump_cond<6>(get_uid(),
+                                                                  pc) &&
           (m_gpu->gpgpu_ctx->func_sim->g_debug_cycle < gpgpusim_total_cycles))
         dump_modifiedregs(stdout);
     }
     if (g_debug_execution >= 10) {
-      if (m_gpu->gpgpu_ctx->func_sim->ptx_debug_exec_dump_cond<10>(get_uid(), pc) &&
+      if (m_gpu->gpgpu_ctx->func_sim->ptx_debug_exec_dump_cond<10>(get_uid(),
+                                                                   pc) &&
           (m_gpu->gpgpu_ctx->func_sim->g_debug_cycle < gpgpusim_total_cycles))
         dump_regs(stdout);
     }
@@ -2151,7 +2195,8 @@ void ptx_thread_info::ptx_exec_inst(warp_inst_t &inst, unsigned lane_id) {
                     op_classification);
       unsigned shader;
       m_gpu->gpgpu_ctx->translate_pc_to_ptxlineno(inst.pc, shader);
-      m_gpu->gpgpu_ctx->func_sim->g_inst_class_stat[shader][op_classification]++;
+      m_gpu->gpgpu_ctx->func_sim
+          ->g_inst_class_stat[shader][op_classification]++;
       if (space_type)
         StatAddSample(m_gpu->gpgpu_ctx->func_sim->g_inst_classification_stat
                           [m_gpu->gpgpu_ctx->func_sim->g_ptx_kernel_count],
@@ -2173,8 +2218,10 @@ void ptx_thread_info::ptx_exec_inst(warp_inst_t &inst, unsigned lane_id) {
 
     // "Return values"
     if (!skip) {
-      if (!((inst_opcode == MMA_LD_OP || inst_opcode == MMA_ST_OP || inst_opcode == TRACE_RAY_OP ||
-              inst_opcode == TXL_OP || inst_opcode == IMG_DEREF_LD_OP || inst_opcode == IMG_DEREF_ST_OP))) {
+      if (!((inst_opcode == MMA_LD_OP || inst_opcode == MMA_ST_OP ||
+             inst_opcode == TRACE_RAY_OP || inst_opcode == TXL_OP ||
+             inst_opcode == IMG_DEREF_LD_OP ||
+             inst_opcode == IMG_DEREF_ST_OP))) {
         inst.space = insn_space;
         inst.set_addr(lane_id, insn_memaddr);
         inst.data_size = insn_data_size;  // simpleAtomicIntrinsics
@@ -2545,9 +2592,10 @@ void cuda_sim::read_sim_environment_variables() {
 
   char *dbg_cycle = getenv("PTX_SIM_DEBUG_CYCLE");
   if (dbg_cycle && strlen(dbg_cycle)) {
-    printf("GPGPU-Sim PTX: printing debug information after cycle %s\n", dbg_cycle);
+    printf("GPGPU-Sim PTX: printing debug information after cycle %s\n",
+           dbg_cycle);
     fflush(stdout);
-    sscanf(dbg_cycle,"%d", &g_debug_cycle);
+    sscanf(dbg_cycle, "%d", &g_debug_cycle);
   }
 
   char *dbg_pc = getenv("PTX_SIM_DEBUG_PC");
@@ -2738,7 +2786,7 @@ void cuda_sim::gpgpu_cuda_ptx_sim_main_func(kernel_info_t &kernel,
   printf("gpgpu_simulation_rate = %u (inst/sec)\n",
          (unsigned)(g_ptx_sim_num_insn / elapsed_time));
   fflush(stdout);
-  
+
   // registering this kernel as done
 
   // openCL kernel simulation calls don't register the kernel so we don't
@@ -2792,9 +2840,11 @@ void functionalCoreSim::createWarp(unsigned warpId) {
   assert(m_thread[warpId * m_warp_size] != NULL);
 
   if (m_gpu->simd_model() == POST_DOMINATOR) {
-    m_simt_stack[warpId]->launch(m_thread[warpId*m_warp_size]->get_pc(), initialMask);
+    m_simt_stack[warpId]->launch(m_thread[warpId * m_warp_size]->get_pc(),
+                                 initialMask);
   } else {
-    m_simt_tables[warpId]->launch(m_thread[warpId*m_warp_size]->get_pc(), initialMask);
+    m_simt_tables[warpId]->launch(m_thread[warpId * m_warp_size]->get_pc(),
+                                  initialMask);
   }
 
   char fname[2048];
@@ -2902,7 +2952,8 @@ unsigned gpgpu_context::translate_pc_to_ptxlineno(unsigned pc) {
   return translate_pc_to_ptxlineno(pc, shader);
 }
 
-unsigned gpgpu_context::translate_pc_to_ptxlineno(unsigned pc, unsigned &shader) {
+unsigned gpgpu_context::translate_pc_to_ptxlineno(unsigned pc,
+                                                  unsigned &shader) {
   // this function assumes that the kernel fits inside a single PTX file
   // function_info *pFunc = g_func_info; // assume that the current kernel is
   // the one in query
@@ -2911,7 +2962,8 @@ unsigned gpgpu_context::translate_pc_to_ptxlineno(unsigned pc, unsigned &shader)
   unsigned ptx_line_number = pInsn->source_line();
 
   if (source_filename.find("MESA") != std::string::npos) {
-    std::string shader_str = source_filename.substr(source_filename.size()-5, 1);
+    std::string shader_str =
+        source_filename.substr(source_filename.size() - 5, 1);
     int shader_id = std::stoi(shader_str);
     shader = (unsigned)shader_id;
   }

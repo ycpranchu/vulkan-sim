@@ -4086,7 +4086,7 @@ kernel_info_t *cuda_runtime_api::gpgpu_cuda_ptx_sim_init_grid(
   fflush(stdout);
 
   if (g_debug_execution >= 4) {
-    //entry->ptx_jit_config(g_mallocPtr_Size, result->get_param_memory(),
+    // entry->ptx_jit_config(g_mallocPtr_Size, result->get_param_memory(),
     //                      (gpgpu_t *)context->get_device()->get_gpgpu(),
     //                      gridDim, blockDim);
   }

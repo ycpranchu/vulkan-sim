@@ -221,16 +221,20 @@ void memory_config::reg_options(class OptionParser *opp) {
 void shader_core_config::reg_options(class OptionParser *opp) {
   option_parser_register(opp, "-gpgpu_simd_model", OPT_INT32, &model,
                          "1 = post-dominator", "1");
-  option_parser_register(opp, "-gpgpu_simd_rec_time_out", OPT_INT32, &rec_time_out,
-                         "-1 = no reconvergence time out", "-1");
-  option_parser_register(opp, "-gpgpu_simd_rec_size", OPT_INT32, &num_rec_entries,
-                         "number of physical entries in the reconvergence table", "32");
+  option_parser_register(opp, "-gpgpu_simd_rec_time_out", OPT_INT32,
+                         &rec_time_out, "-1 = no reconvergence time out", "-1");
+  option_parser_register(
+      opp, "-gpgpu_simd_rec_size", OPT_INT32, &num_rec_entries,
+      "number of physical entries in the reconvergence table", "32");
   option_parser_register(opp, "-gpgpu_simd_st_size", OPT_INT32, &num_st_entries,
-                         "number of physical entries in the splits table", "33");
-  option_parser_register(opp, "-gpgpu_simd_rec_replacement", OPT_INT32, &rec_replacement,
+                         "number of physical entries in the splits table",
+                         "33");
+  option_parser_register(opp, "-gpgpu_simd_rec_replacement", OPT_INT32,
+                         &rec_replacement,
                          "reconvergence table replacement policy", "0");
-  option_parser_register(opp, "-gpgpu_simd_st_replacement", OPT_INT32, &st_replacement,
-                         "splits table replacement policy", "0");
+  option_parser_register(opp, "-gpgpu_simd_st_replacement", OPT_INT32,
+                         &st_replacement, "splits table replacement policy",
+                         "0");
   option_parser_register(
       opp, "-gpgpu_shader_core_pipeline", OPT_CSTR,
       &gpgpu_shader_core_pipeline_opt,
@@ -253,46 +257,37 @@ void shader_core_config::reg_options(class OptionParser *opp) {
       " {<nsets>:<bsize>:<assoc>,<rep>:<wr>:<alloc>:<wr_alloc>,<mshr>:<N>:<"
       "merge>,<mq>} ",
       "64:64:2,L:R:f:N,A:2:32,4");
-  option_parser_register(
-      opp, "-gpgpu_rt_use_l1", OPT_BOOL, &m_rt_use_l1d,
-      "use existing L1 cache instead of dedicated L0 cache ",
-      "1");
-  option_parser_register(
-      opp, "-gpgpu_rt_perfect_mem", OPT_BOOL, &m_rt_perfect_mem,
-      "assume 0 latency BVH accesses ",
-      "0");
-  option_parser_register(
-      opp, "-gpgpu_rt_coherence_engine", OPT_BOOL, &m_rt_coherence_engine,
-      "enable coherency engine (ray sorting) ",
-      "0");
-  option_parser_register(
-      opp, "-gpgpu_rt_coherence_engine_config", OPT_CSTR, &m_rt_coherence_engine_config_str,
-      "max cycles, hash ",
-      "100, d");
+  option_parser_register(opp, "-gpgpu_rt_use_l1", OPT_BOOL, &m_rt_use_l1d,
+                         "use existing L1 cache instead of dedicated L0 cache ",
+                         "1");
+  option_parser_register(opp, "-gpgpu_rt_perfect_mem", OPT_BOOL,
+                         &m_rt_perfect_mem, "assume 0 latency BVH accesses ",
+                         "0");
+  option_parser_register(opp, "-gpgpu_rt_coherence_engine", OPT_BOOL,
+                         &m_rt_coherence_engine,
+                         "enable coherency engine (ray sorting) ", "0");
+  option_parser_register(opp, "-gpgpu_rt_coherence_engine_config", OPT_CSTR,
+                         &m_rt_coherence_engine_config_str, "max cycles, hash ",
+                         "100, d");
   option_parser_register(
       opp, "-gpgpu_rt_disable_rt_cache", OPT_BOOL, &bypassL0Complet,
-      "bypass RT cache and connect RT unit directly to interconnect ",
-      "0");
+      "bypass RT cache and connect RT unit directly to interconnect ", "0");
   option_parser_register(
       opp, "-gpgpu_rt_max_warps", OPT_UINT32, &m_rt_max_warps,
-      "max number of warps concurrently in one rt core ",
-      "0");
-  option_parser_register(
-      opp, "-gpgpu_rt_max_mshr", OPT_UINT32, &m_rt_max_mshr_entries,
-      "max number of MSHR entries in RT unit ",
-      "32");
-  option_parser_register(
-      opp, "-gpgpu_rt_coalesce_warps", OPT_BOOL, &m_rt_coalesce_warps,
-      "try to coalesce memory requests between warps ",
-      "0");
-  option_parser_register(
-      opp, "-gpgpu_rt_intersection_latency", OPT_CSTR, &m_rt_intersection_latency_str,
-      "latency of pipelined intersection tests (7 types)",
-      "0,0,0,0,0,0,0");
-  option_parser_register(
-      opp, "-gpgpu_rt_intersection_table_type", OPT_UINT32, &m_rt_intersection_table_type,
-      "type of intersection table",
-      "0");
+      "max number of warps concurrently in one rt core ", "0");
+  option_parser_register(opp, "-gpgpu_rt_max_mshr", OPT_UINT32,
+                         &m_rt_max_mshr_entries,
+                         "max number of MSHR entries in RT unit ", "32");
+  option_parser_register(opp, "-gpgpu_rt_coalesce_warps", OPT_BOOL,
+                         &m_rt_coalesce_warps,
+                         "try to coalesce memory requests between warps ", "0");
+  option_parser_register(opp, "-gpgpu_rt_intersection_latency", OPT_CSTR,
+                         &m_rt_intersection_latency_str,
+                         "latency of pipelined intersection tests (7 types)",
+                         "0,0,0,0,0,0,0");
+  option_parser_register(opp, "-gpgpu_rt_intersection_table_type", OPT_UINT32,
+                         &m_rt_intersection_table_type,
+                         "type of intersection table", "0");
   option_parser_register(opp, "-gpgpu_cache:il1", OPT_CSTR,
                          &m_L1I_config.m_config_string,
                          "shader L1 instruction cache config "
@@ -542,7 +537,8 @@ void shader_core_config::reg_options(class OptionParser *opp) {
       opp, "-gpgpu_pipeline_widths", OPT_CSTR, &pipeline_widths_string,
       "Pipeline widths "
       "ID_OC_SP,ID_OC_DP,ID_OC_INT,ID_OC_SFU,ID_OC_MEM,OC_EX_SP,OC_EX_DP,OC_EX_"
-      "INT,OC_EX_SFU,OC_EX_MEM,EX_WB,ID_OC_TENSOR_CORE,OC_EX_TENSOR_CORE,ID_OC_RT,OC_EX_RT",
+      "INT,OC_EX_SFU,OC_EX_MEM,EX_WB,ID_OC_TENSOR_CORE,OC_EX_TENSOR_CORE,ID_OC_"
+      "RT,OC_EX_RT",
       "1,1,1,1,1,1,1,1,1,1,1,1,1,1,1");
   option_parser_register(opp, "-gpgpu_tensor_core_avail", OPT_INT32,
                          &gpgpu_tensor_core_avail,
@@ -612,9 +608,11 @@ void gpgpu_sim_config::reg_options(option_parser_t opp) {
   m_shader_config.reg_options(opp);
   m_memory_config.reg_options(opp);
   power_config::reg_options(opp);
-  option_parser_register(opp, "-gpgpu_intermittent_stats", OPT_BOOL, &gpu_intermittent_stats,
-                         "print intermittent stats", "0");
-  option_parser_register(opp, "-gpgpu_intermittent_stats_freq", OPT_INT64, &gpu_intermittent_stats_freq,
+  option_parser_register(opp, "-gpgpu_intermittent_stats", OPT_BOOL,
+                         &gpu_intermittent_stats, "print intermittent stats",
+                         "0");
+  option_parser_register(opp, "-gpgpu_intermittent_stats_freq", OPT_INT64,
+                         &gpu_intermittent_stats_freq,
                          "intermittent stats frequency", "10000");
   option_parser_register(opp, "-gpgpu_max_cycle", OPT_INT64, &gpu_max_cycle_opt,
                          "terminates gpu simulation early (0 = no limit)", "0");
@@ -721,7 +719,8 @@ void gpgpu_sim_config::reg_options(option_parser_t opp) {
                          "0");
   option_parser_register(opp, "-gpgpu_max_simulated_rt_kernels", OPT_INT32,
                          &(gpgpu_ctx->device_runtime->g_max_sim_rt_kernels),
-                         "Max simulated kernels, used to limit how many frames we render. Default: 0",
+                         "Max simulated kernels, used to limit how many frames "
+                         "we render. Default: 0",
                          "0");
 }
 
@@ -968,8 +967,7 @@ int gpgpu_sim::shared_mem_size() const {
 bool gpgpu_sim::print_intermittent_stats(unsigned long long cycle) const {
   if (m_config.gpu_intermittent_stats) {
     return cycle % m_config.gpu_intermittent_stats_freq == 0;
-  }
-  else {
+  } else {
     return false;
   }
 }
@@ -1154,12 +1152,14 @@ void gpgpu_sim::print_stats() {
   fflush(stdout);
 
   if (g_network_mode) {
-    fprintf(stdout,
+    fprintf(
+        stdout,
         "----------------------------Interconnect-DETAILS----------------------"
         "----------\n");
     icnt_display_stats();
     icnt_display_overall_stats();
-    fprintf(stdout,
+    fprintf(
+        stdout,
         "----------------------------END-of-Interconnect-DETAILS---------------"
         "----------\n");
   }
@@ -1184,7 +1184,7 @@ void gpgpu_sim::deadlock_check() {
               "GPGPU-Sim uArch: DEADLOCK  shader cores no longer committing "
               "instructions [core(# threads)]:\n");
           printf("GPGPU-Sim uArch: DEADLOCK  ");
-          dump_pipeline((0x40|0x4|0x1), 5, 0);
+          dump_pipeline((0x40 | 0x4 | 0x1), 5, 0);
           m_cluster[i]->print_not_completed(stdout);
         } else if (num_cores < 8) {
           m_cluster[i]->print_not_completed(stdout);
@@ -1333,23 +1333,27 @@ void gpgpu_sim::gpu_print_stat() {
   fprintf(statfout, "gpu_sim_cycle = %lld\n", gpu_sim_cycle);
   fprintf(statfout, "gpu_sim_insn = %lld\n", gpu_sim_insn);
   fprintf(statfout, "gpu_ipc = %12.4f\n", (float)gpu_sim_insn / gpu_sim_cycle);
-  fprintf(statfout, "gpu_tot_sim_cycle = %lld\n", gpu_tot_sim_cycle + gpu_sim_cycle);
-  fprintf(statfout, "gpu_tot_sim_insn = %lld\n", gpu_tot_sim_insn + gpu_sim_insn);
-  fprintf(statfout, "gpu_tot_ipc = %12.4f\n", (float)(gpu_tot_sim_insn + gpu_sim_insn) /
-                                       (gpu_tot_sim_cycle + gpu_sim_cycle));
+  fprintf(statfout, "gpu_tot_sim_cycle = %lld\n",
+          gpu_tot_sim_cycle + gpu_sim_cycle);
+  fprintf(statfout, "gpu_tot_sim_insn = %lld\n",
+          gpu_tot_sim_insn + gpu_sim_insn);
+  fprintf(statfout, "gpu_tot_ipc = %12.4f\n",
+          (float)(gpu_tot_sim_insn + gpu_sim_insn) /
+              (gpu_tot_sim_cycle + gpu_sim_cycle));
   fprintf(statfout, "gpu_tot_issued_cta = %lld\n",
-         gpu_tot_issued_cta + m_total_cta_launched);
-  fprintf(statfout, "gpu_occupancy = %.4f%% \n", gpu_occupancy.get_occ_fraction() * 100);
+          gpu_tot_issued_cta + m_total_cta_launched);
+  fprintf(statfout, "gpu_occupancy = %.4f%% \n",
+          gpu_occupancy.get_occ_fraction() * 100);
   fprintf(statfout, "gpu_tot_occupancy = %.4f%% \n",
-         (gpu_occupancy + gpu_tot_occupancy).get_occ_fraction() * 100);
+          (gpu_occupancy + gpu_tot_occupancy).get_occ_fraction() * 100);
 
   fprintf(statfout, "max_total_param_size = %llu\n",
           gpgpu_ctx->device_runtime->g_max_total_param_size);
 
-
   // AWARE Stats
   fprintf(statfout, "splits_table_push_back = %d\n", splits_table_push_back);
-  fprintf(statfout, "splits_table_update_active_entry = %d\n", splits_table_update_active_entry);
+  fprintf(statfout, "splits_table_update_active_entry = %d\n",
+          splits_table_update_active_entry);
   fprintf(statfout, "max_recvg_time = %lld\n", max_recvg_time);
   fprintf(statfout, "max_st entries = %lld\n", max_st_entries);
   fprintf(statfout, "max_rec entries = %lld\n", max_rec_entries);
@@ -1360,12 +1364,14 @@ void gpgpu_sim::gpu_print_stat() {
   fprintf(statfout, "gpu_rt_fills = %lld\n", gpu_rt_fills);
   fprintf(statfout, "gpu_st_fills_hits = %lld\n", gpu_st_fills_hits);
   fprintf(statfout, "gpu_st_fills_misses = %lld\n", gpu_st_fills_misses);
-  fprintf(statfout, "gpu_rt_fills_hits = %lld\n", gpu_rt_fills_hits );
+  fprintf(statfout, "gpu_rt_fills_hits = %lld\n", gpu_rt_fills_hits);
   fprintf(statfout, "gpu_rt_fills_misses = %lld\n", gpu_rt_fills_misses);
 
-  double avg_st_entries = m_shader_stats->compue_distribution_avg(m_shader_stats->st_size_distro);
+  double avg_st_entries =
+      m_shader_stats->compue_distribution_avg(m_shader_stats->st_size_distro);
   fprintf(statfout, "avg_st_entries = %f\n", avg_st_entries);
-  double avg_rt_entries = m_shader_stats->compue_distribution_avg(m_shader_stats->rt_size_distro);
+  double avg_rt_entries =
+      m_shader_stats->compue_distribution_avg(m_shader_stats->rt_size_distro);
   fprintf(statfout, "avg_rt_entries = %f\n", avg_rt_entries);
 
   m_shader_stats->print_reuse_distribution_avg();
@@ -1377,10 +1383,10 @@ void gpgpu_sim::gpu_print_stat() {
   // printf("partiton_reqs_in_parallel_total    = %lld\n",
   // partiton_reqs_in_parallel_total );
   fprintf(statfout, "partiton_level_parallism = %12.4f\n",
-         (float)partiton_reqs_in_parallel / gpu_sim_cycle);
+          (float)partiton_reqs_in_parallel / gpu_sim_cycle);
   fprintf(statfout, "partiton_level_parallism_total  = %12.4f\n",
-         (float)(partiton_reqs_in_parallel + partiton_reqs_in_parallel_total) /
-             (gpu_tot_sim_cycle + gpu_sim_cycle));
+          (float)(partiton_reqs_in_parallel + partiton_reqs_in_parallel_total) /
+              (gpu_tot_sim_cycle + gpu_sim_cycle));
   // printf("partiton_reqs_in_parallel_util = %lld\n",
   // partiton_reqs_in_parallel_util);
   // printf("partiton_reqs_in_parallel_util_total    = %lld\n",
@@ -1413,7 +1419,7 @@ void gpgpu_sim::gpu_print_stat() {
   unsigned long long elapsed_time =
       MAX(curr_time - gpgpu_ctx->the_gpgpusim->g_simulation_starttime, 1);
   fprintf(statfout, "gpu_total_sim_rate=%u\n",
-         (unsigned)((gpu_tot_sim_insn + gpu_sim_insn) / elapsed_time));
+          (unsigned)((gpu_tot_sim_insn + gpu_sim_insn) / elapsed_time));
 
   // shader_print_l1_miss_stat( stdout );
   shader_print_cache_stats(statfout);
@@ -1474,14 +1480,16 @@ void gpgpu_sim::gpu_print_stat() {
     if (!m_memory_config->m_L2_config.disabled() &&
         m_memory_config->m_L2_config.get_num_lines()) {
       // L2c_print_cache_stat();
-      fprintf(statfout, "L2_total_cache_accesses = %llu\n", total_l2_css.accesses);
+      fprintf(statfout, "L2_total_cache_accesses = %llu\n",
+              total_l2_css.accesses);
       fprintf(statfout, "L2_total_cache_misses = %llu\n", total_l2_css.misses);
       if (total_l2_css.accesses > 0)
         fprintf(statfout, "L2_total_cache_miss_rate = %.4lf\n",
-               (double)total_l2_css.misses / (double)total_l2_css.accesses);
-      fprintf(statfout, "L2_total_cache_pending_hits = %llu\n", total_l2_css.pending_hits);
+                (double)total_l2_css.misses / (double)total_l2_css.accesses);
+      fprintf(statfout, "L2_total_cache_pending_hits = %llu\n",
+              total_l2_css.pending_hits);
       fprintf(statfout, "L2_total_cache_reservation_fails = %llu\n",
-             total_l2_css.res_fails);
+              total_l2_css.res_fails);
       fprintf(statfout, "L2_total_cache_breakdown:\n");
       l2_stats.print_stats(statfout, "L2_cache_stats_breakdown");
       fprintf(statfout, "L2_total_cache_reservation_fail_breakdown:\n");
@@ -1500,31 +1508,42 @@ void gpgpu_sim::gpu_print_stat() {
     StatDisp(gpgpu_ctx->func_sim->g_inst_op_classification_stat
                  [gpgpu_ctx->func_sim->g_ptx_kernel_count]);
   }
-    
+
   fprintf(statfout, "Ray tracing memory access distribution: \n");
-  for (unsigned i=0; i<static_cast<int>(TransactionType::UNDEFINED); i++) {
-      fprintf(statfout, "%d\t", gpgpu_ctx->func_sim->g_rt_mem_access_type[i]);
+  for (unsigned i = 0; i < static_cast<int>(TransactionType::UNDEFINED); i++) {
+    fprintf(statfout, "%d\t", gpgpu_ctx->func_sim->g_rt_mem_access_type[i]);
   }
   fprintf(statfout, "\n");
 
   fprintf(statfout, "rt_num_hits = %d\n", gpgpu_ctx->func_sim->g_rt_num_hits);
-  fprintf(statfout, "rt_num_any_hits = %d\n", gpgpu_ctx->func_sim->g_rt_num_any_hits);
-  fprintf(statfout, "rt_n_anyhit_rays = %d\n", gpgpu_ctx->func_sim->g_n_anyhit_rays);
-  fprintf(statfout, "rt_n_closesthit_rays = %d\n", gpgpu_ctx->func_sim->g_n_closesthit_rays);
-  fprintf(statfout, "rt_n_total_rays = %d\n", gpgpu_ctx->func_sim->g_n_closesthit_rays + gpgpu_ctx->func_sim->g_n_anyhit_rays);
-  fprintf(statfout, "rt_max_tree_depth = %d\n", gpgpu_ctx->func_sim->g_max_tree_depth);
-  fprintf(statfout, "rt_max_nodes_per_ray = %d\n", gpgpu_ctx->func_sim->g_max_nodes_per_ray);
-  fprintf(statfout, "rt_tot_nodes_per_ray = %d\n", gpgpu_ctx->func_sim->g_tot_nodes_per_ray);
-  fprintf(statfout, "rt_avg_nodes_per_ray = %f\n", (float)gpgpu_ctx->func_sim->g_tot_nodes_per_ray/(gpgpu_ctx->func_sim->g_n_closesthit_rays + gpgpu_ctx->func_sim->g_n_anyhit_rays));
+  fprintf(statfout, "rt_num_any_hits = %d\n",
+          gpgpu_ctx->func_sim->g_rt_num_any_hits);
+  fprintf(statfout, "rt_n_anyhit_rays = %d\n",
+          gpgpu_ctx->func_sim->g_n_anyhit_rays);
+  fprintf(statfout, "rt_n_closesthit_rays = %d\n",
+          gpgpu_ctx->func_sim->g_n_closesthit_rays);
+  fprintf(statfout, "rt_n_total_rays = %d\n",
+          gpgpu_ctx->func_sim->g_n_closesthit_rays +
+              gpgpu_ctx->func_sim->g_n_anyhit_rays);
+  fprintf(statfout, "rt_max_tree_depth = %d\n",
+          gpgpu_ctx->func_sim->g_max_tree_depth);
+  fprintf(statfout, "rt_max_nodes_per_ray = %d\n",
+          gpgpu_ctx->func_sim->g_max_nodes_per_ray);
+  fprintf(statfout, "rt_tot_nodes_per_ray = %d\n",
+          gpgpu_ctx->func_sim->g_tot_nodes_per_ray);
+  fprintf(statfout, "rt_avg_nodes_per_ray = %f\n",
+          (float)gpgpu_ctx->func_sim->g_tot_nodes_per_ray /
+              (gpgpu_ctx->func_sim->g_n_closesthit_rays +
+               gpgpu_ctx->func_sim->g_n_anyhit_rays));
   fprintf(statfout, "g_inst_type_latency = ");
-  for (unsigned i=0; i<28; i++) {
+  for (unsigned i = 0; i < 28; i++) {
     fprintf(statfout, "%lld ", gpgpu_ctx->func_sim->g_inst_type_latency[i]);
   }
   fprintf(statfout, "\n");
   fprintf(statfout, "inst_class_by_shader\n");
-  for (unsigned i=0; i<16; i++) {
+  for (unsigned i = 0; i < 16; i++) {
     fprintf(statfout, "%d:", i);
-    for (unsigned j=0; j<20; j++) {
+    for (unsigned j = 0; j < 20; j++) {
       fprintf(statfout, "%d\t", gpgpu_ctx->func_sim->g_inst_class_stat[i][j]);
     }
     fprintf(statfout, "\n");
@@ -1606,7 +1625,7 @@ void shader_core_ctx::rt_mem_instruction_stats(const warp_inst_t &inst) {
   unsigned active_count = inst.active_count();
   m_stats->gpgpu_n_rt_insn += active_count;
 
-  for (unsigned i=0; i<m_config->warp_size; i++) {
+  for (unsigned i = 0; i < m_config->warp_size; i++) {
     m_stats->gpgpu_n_rt_access_insn += inst.mem_list_length(i);
   }
 }
@@ -2166,7 +2185,7 @@ void gpgpu_sim::perf_memcpy_to_gpu(size_t dst_start_addr, size_t count) {
 void gpgpu_sim::dump_rt_pipeline(int sid) const {
   printf("Dumping RT core pipeline state...\n");
   m_cluster[m_shader_config->sid_to_cluster(sid)]->display_rt_pipeline(
-          sid, stdout, 0x40 & 0x2E);
+      sid, stdout, 0x40 & 0x2E);
 }
 
 void gpgpu_sim::dump_pipeline(int mask, int s, int m) const {

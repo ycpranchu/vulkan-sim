@@ -3131,7 +3131,7 @@ void VulkanRayTracing::allocTLAS(void *rootAddr, uint64_t bufferSize,
 // ------------------------------------------------------------------
 
 void VulkanRayTracing::allocTrigs(void *gpgpusimAddr) {
-  printf("gpgpusim: set BLAS address to %p\n", gpgpusimAddr);
+  printf("gpgpusim: set Trigs address to %p\n", gpgpusimAddr);
   trigs_addr = gpgpusimAddr;
 }
 

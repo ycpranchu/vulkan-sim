@@ -622,13 +622,13 @@ void ptx_recognizer::add_scalar_type_spec(int type_spec) {
                     g_ptx_token_decode[type_spec].c_str());
   g_scalar_type.push_back(type_spec);
   if (g_scalar_type.size() > 1) {
-    parse_assert((g_opcode == -1) || (g_opcode == CVT_OP) ||
-                     (g_opcode == SET_OP) || (g_opcode == SLCT_OP) ||
-                     (g_opcode == TEX_OP) || (g_opcode == MMA_OP) ||
-                     (g_opcode == DP4A_OP) || (g_opcode == VMIN_OP) || 
-                     (g_opcode == VMAX_OP),
-                 "only cvt, set, slct, tex, vmin, vmax and dp4a can have more than one "
-                 "type specifier.");
+    parse_assert(
+        (g_opcode == -1) || (g_opcode == CVT_OP) || (g_opcode == SET_OP) ||
+            (g_opcode == SLCT_OP) || (g_opcode == TEX_OP) ||
+            (g_opcode == MMA_OP) || (g_opcode == DP4A_OP) ||
+            (g_opcode == VMIN_OP) || (g_opcode == VMAX_OP),
+        "only cvt, set, slct, tex, vmin, vmax and dp4a can have more than one "
+        "type specifier.");
   }
   g_scalar_type_spec = type_spec;
 }
@@ -767,7 +767,8 @@ void ptx_recognizer::add_2vector_literal_float(float d1, float d2) {
   g_operands.push_back(operand_info(d1, d2, (float)0, (float)0, gpgpu_ctx));
 }
 
-void ptx_recognizer::add_4vector_literal_float(float d1, float d2, float d3, float d4) {
+void ptx_recognizer::add_4vector_literal_float(float d1, float d2, float d3,
+                                               float d4) {
   PTX_PARSE_DPRINTF("add_4vector_literal_float");
   g_operands.push_back(operand_info(d1, d2, d3, d4, gpgpu_ctx));
 }
@@ -777,7 +778,8 @@ void ptx_recognizer::add_2vector_literal_double(double d1, double d2) {
   g_operands.push_back(operand_info(d1, d2, (double)0, (double)0, gpgpu_ctx));
 }
 
-void ptx_recognizer::add_4vector_literal_double(double d1, double d2, double d3, double d4) {
+void ptx_recognizer::add_4vector_literal_double(double d1, double d2, double d3,
+                                                double d4) {
   PTX_PARSE_DPRINTF("add_4vector_literal_double");
   g_operands.push_back(operand_info(d1, d2, d3, d4, gpgpu_ctx));
 }
@@ -940,7 +942,8 @@ void ptx_recognizer::add_neg_pred_operand(const char *identifier) {
   g_operands.push_back(op);
 }
 
-void ptx_recognizer::add_scalar_operand_with_dim_mod(const char *identifier, int dim_modifier) {
+void ptx_recognizer::add_scalar_operand_with_dim_mod(const char *identifier,
+                                                     int dim_modifier) {
   PTX_PARSE_DPRINTF("add_scalar_operand_with_dim_mod");
   const symbol *s = g_current_symbol_table->lookup(identifier);
   if (s == NULL) {
